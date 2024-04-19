@@ -1,0 +1,31 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "RESTful API enabling CRUD operations (Create, Read, Update, Delete) for user management in web application.",
+        "title": "Users API",
+        "contact": {},
+        "license": {
+            "name": "MIT License",
+            "url": "https://github.com/HealthHub-Management-System/UserService/blob/master/LICENSE"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/../livez": {
+            "get": {
+                "description": "Read health",
+                "tags": [
+                    "health"
+                ],
+                "summary": "Read health",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    }
+}
