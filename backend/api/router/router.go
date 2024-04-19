@@ -2,6 +2,9 @@ package router
 
 import (
 	"github.com/go-chi/chi/v5"
+	"gorm.io/gorm"
+
+	"github.com/go-playground/validator/v10"
 
 	"backend/api/resource/health"
 	"backend/api/resource/users"
@@ -11,7 +14,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func New() *chi.Mux {
+func New(db *gorm.DB, v *validator.Validate) *chi.Mux {
 	r := chi.NewRouter()
 
 	// Health check
@@ -22,7 +25,7 @@ func New() *chi.Mux {
 
 	// Users API
 	r.Route("/api/v1", func(r chi.Router) {
-		usersAPI := &users.API{}
+		usersAPI := users.New(db, v)
 		r.Get("/users", usersAPI.List)
 		r.Post("/users", usersAPI.Create)
 		r.Get("/users/{id}", usersAPI.Read)

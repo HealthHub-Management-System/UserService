@@ -5,9 +5,16 @@ import (
 	"log"
 	"net/http"
 
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
+
 	"backend/api/router"
 	"backend/config"
+	validatorUtil "backend/utils/validator"
 )
+
+const fmtDBString = "host=%s user=%s password=%s dbname=%s port=%d sslmode=disable"
 
 // @title           Users API
 // @version         1.0
@@ -20,7 +27,23 @@ import (
 // @BasePath  /api/v1
 func main() {
 	c := config.New()
-	r := router.New()
+	v := validatorUtil.New()
+
+	var logLevel gormlogger.LogLevel
+	if c.Database.Debug {
+		logLevel = gormlogger.Info
+	} else {
+		logLevel = gormlogger.Error
+	}
+
+	dbString := fmt.Sprintf(fmtDBString, c.Database.Host, c.Database.Username, c.Database.Password, c.Database.Name, c.Database.Port)
+	db, err := gorm.Open(postgres.Open(dbString), &gorm.Config{Logger: gormlogger.Default.LogMode(logLevel)})
+	if err != nil {
+		log.Fatal("DB connection start failure")
+		return
+	}
+
+	r := router.New(db, v)
 
 	s := &http.Server{
 		Addr:         fmt.Sprintf(":%d", c.Server.Port),
