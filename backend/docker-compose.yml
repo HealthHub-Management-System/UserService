@@ -10,6 +10,12 @@ services:
       db:
         condition: service_healthy
     command: [ "sh", "-c", "/myapp/bin/migrate up && /myapp/bin/api" ]
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/livez" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
 
   db:
     image: postgres:alpine

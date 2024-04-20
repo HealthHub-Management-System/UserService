@@ -77,6 +77,8 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	fmt.Println(id)
+
 	if err != nil {
 		e.BadRequest(w, e.RespInvalidURLParamID)
 		return
