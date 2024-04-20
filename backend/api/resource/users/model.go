@@ -5,6 +5,10 @@ import (
 	_ "gorm.io/gorm"
 )
 
+type ListResponse struct {
+	Users []*UserResponse `json:"users"`
+}
+
 type UserResponse struct {
 	ID    uuid.UUID `json:"id"`
 	Name  string    `json:"name"`
@@ -34,12 +38,12 @@ func (u *User) ToResponse() *UserResponse {
 	}
 }
 
-func (users Users) ToResponse() []*UserResponse {
+func (users Users) ToResponse() *ListResponse {
 	var response []*UserResponse
 	for _, u := range users {
 		response = append(response, u.ToResponse())
 	}
-	return response
+	return &ListResponse{Users: response}
 }
 
 func (f *Form) ToModel() *User {
