@@ -8,6 +8,7 @@ import (
 
 	"backend/api/resource/health"
 	"backend/api/resource/users"
+	"backend/api/router/middleware"
 
 	_ "backend/docs"
 
@@ -25,6 +26,8 @@ func New(db *gorm.DB, v *validator.Validate) *chi.Mux {
 
 	// Users API
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(middleware.ContentTypeJSON)
+
 		usersAPI := users.New(db, v)
 		r.Get("/users", usersAPI.List)
 		r.Post("/users", usersAPI.Create)
