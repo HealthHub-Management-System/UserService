@@ -16,9 +16,9 @@ type UserResponse struct {
 }
 
 type Form struct {
-	Name     string `json:"name" validate:"required,alpha_space,max=255"`
-	Email    string `json:"email" validate:"required,email,max=255"`
-	Password string `json:"password" validate:"required,max=255"`
+	Name     string `json:"name" form:"required,alpha_space,max=255"`
+	Email    string `json:"email" form:"required,email,max=255"`
+	Password string `json:"password" form:"required,password,max=255"`
 }
 
 type User struct {

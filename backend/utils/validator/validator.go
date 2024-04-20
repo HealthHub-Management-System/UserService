@@ -9,10 +9,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-const (
-	alphaSpaceRegexString string = "^[a-zA-Z ]+$"
-)
-
 type ErrResponse struct {
 	Errors []string `json:"errors"`
 }
@@ -66,7 +62,7 @@ func ToErrResponse(err error) *ErrResponse {
 }
 
 func isAlphaSpace(fl validator.FieldLevel) bool {
-	reg := regexp.MustCompile(alphaSpaceRegexString)
+	reg := regexp.MustCompile("^[a-zA-Z ]+$")
 	return reg.MatchString(fl.Field().String())
 }
 
