@@ -6,10 +6,10 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/google/uuid"
-	"gorm.io/gorm"
-
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
+	"github.com/rs/zerolog"
+	"gorm.io/gorm"
 
 	e "backend/api/resource/common/error"
 	validatorUtil "backend/utils/validator"
@@ -18,12 +18,14 @@ import (
 type API struct {
 	repository *Repository
 	validator  *validator.Validate
+	logger     *zerolog.Logger
 }
 
-func New(db *gorm.DB, v *validator.Validate) *API {
+func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate) *API {
 	return &API{
 		repository: NewRepository(db),
 		validator:  v,
+		logger:     l,
 	}
 }
 
@@ -40,6 +42,7 @@ func New(db *gorm.DB, v *validator.Validate) *API {
 func (a *API) List(w http.ResponseWriter, r *http.Request) {
 	users, err := a.repository.List()
 	if err != nil {
+		a.logger.Error().Err(err).Msg("List users failed")
 		e.ServerError(w, e.RespDBDataAccessFailure)
 		return
 	}
@@ -50,6 +53,7 @@ func (a *API) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(users.ToResponse()); err != nil {
+		a.logger.Error().Err(err).Msg("List users failed")
 		e.ServerError(w, e.RespJSONEncodeFailure)
 		return
 	}
@@ -71,11 +75,13 @@ func (a *API) List(w http.ResponseWriter, r *http.Request) {
 func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 	form := &Form{}
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
+		a.logger.Error().Err(err).Msg("Create user failed")
 		e.ServerError(w, e.RespJSONDecodeFailure)
 		return
 	}
 
 	if err := a.validator.Struct(form); err != nil {
+		a.logger.Error().Err(err).Msg("Create user failed")
 		respBody, err := json.Marshal(validatorUtil.ToErrResponse(err))
 		if err != nil {
 			e.ServerError(w, e.RespJSONEncodeFailure)
@@ -91,6 +97,7 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 
 	_, err := a.repository.Create(newUser)
 	if err != nil {
+		a.logger.Error().Err(err).Msg("Create user failed")
 		e.ServerError(w, e.RespDBDataInsertFailure)
 		return
 	}
@@ -116,12 +123,14 @@ func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(id)
 
 	if err != nil {
+		a.logger.Error().Err(err).Msg("Read user failed")
 		e.BadRequest(w, e.RespInvalidURLParamID)
 		return
 	}
 
 	user, err := a.repository.Read(id)
 	if err != nil {
+		a.logger.Error().Err(err).Msg("Read user failed")
 		if err == gorm.ErrRecordNotFound {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -133,6 +142,7 @@ func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 
 	response := user.ToResponse()
 	if err := json.NewEncoder(w).Encode(response); err != nil {
+		a.logger.Error().Err(err).Msg("Read user failed")
 		e.ServerError(w, e.RespJSONEncodeFailure)
 		return
 	}
@@ -156,17 +166,20 @@ func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 func (a *API) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
+		a.logger.Error().Err(err).Msg("Update user failed")
 		e.BadRequest(w, e.RespInvalidURLParamID)
 		return
 	}
 
 	form := &Form{}
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
+		a.logger.Error().Err(err).Msg("Update user failed")
 		e.ServerError(w, e.RespJSONDecodeFailure)
 		return
 	}
 
 	if err := a.validator.Struct(form); err != nil {
+		a.logger.Error().Err(err).Msg("Update user failed")
 		respBody, err := json.Marshal(validatorUtil.ToErrResponse(err))
 		if err != nil {
 			e.ServerError(w, e.RespJSONEncodeFailure)
@@ -182,6 +195,7 @@ func (a *API) Update(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := a.repository.Update(user)
 	if err != nil {
+		a.logger.Error().Err(err).Msg("Update user failed")
 		e.ServerError(w, e.RespDBDataUpdateFailure)
 		return
 	}
@@ -207,12 +221,14 @@ func (a *API) Update(w http.ResponseWriter, r *http.Request) {
 func (a *API) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
+		a.logger.Error().Err(err).Msg("Delete user failed")
 		e.BadRequest(w, e.RespInvalidURLParamID)
 		return
 	}
 
 	rows, err := a.repository.Delete(id)
 	if err != nil {
+		a.logger.Error().Err(err).Msg("Delete user failed")
 		e.BadRequest(w, e.RespDBDataRemoveFailure)
 		return
 	}

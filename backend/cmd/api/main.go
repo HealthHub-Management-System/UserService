@@ -11,6 +11,7 @@ import (
 
 	"backend/api/router"
 	"backend/config"
+	"backend/utils/logger"
 	validatorUtil "backend/utils/validator"
 )
 
@@ -27,6 +28,7 @@ const fmtDBString = "host=%s user=%s password=%s dbname=%s port=%d sslmode=disab
 // @BasePath  /api/v1
 func main() {
 	c := config.New()
+	l := logger.New(c.Server.Debug)
 	v := validatorUtil.New()
 
 	var logLevel gormlogger.LogLevel
@@ -43,7 +45,7 @@ func main() {
 		return
 	}
 
-	r := router.New(db, v)
+	r := router.New(l, db, v)
 
 	s := &http.Server{
 		Addr:         fmt.Sprintf(":%d", c.Server.Port),
