@@ -27,6 +27,16 @@ func New(db *gorm.DB, v *validator.Validate) *API {
 	}
 }
 
+// List godoc
+//
+//	@summary		List users
+//	@description	List users
+//	@tags			users
+//	@accept			json
+//	@produce		json
+//	@success		200	{array}		ListResponse
+//	@failure		500	{object}	error.Error
+//	@router			/users [get]
 func (a *API) List(w http.ResponseWriter, r *http.Request) {
 	users, err := a.repository.List()
 	if err != nil {
@@ -45,6 +55,19 @@ func (a *API) List(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Create godoc
+//
+//	@summary		Create user
+//	@description	Create user
+//	@tags			users
+//	@accept			json
+//	@produce		json
+//	@param			body	body	Form	true	"User form"
+//	@success		201
+//	@failure		400	{object}	error.Error
+//	@failure		422	{object}	error.Errors
+//	@failure		500	{object}	error.Error
+//	@router			/users [post]
 func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 	form := &Form{}
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
@@ -75,6 +98,19 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// Read godoc
+//
+//	@summary		Read user
+//	@description	Read user
+//	@tags			users
+//	@accept			json
+//	@produce		json
+//	@param			id	path		string	true	"User ID"
+//	@success		200	{object}	UserResponse
+//	@failure		400	{object}	error.Error
+//	@failure		404
+//	@failure		500	{object}	error.Error
+//	@router			/users/{id} [get]
 func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	fmt.Println(id)
@@ -102,6 +138,21 @@ func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Update godoc
+//
+//	@summary		Update user
+//	@description	Update user
+//	@tags			users
+//	@accept			json
+//	@produce		json
+//	@param			id		path	string	true	"User ID"
+//	@param			body	body	Form	true	"User form"
+//	@success		200
+//	@failure		400	{object}	error.Error
+//	@failure		404
+//	@failure		422	{object}	error.Errors
+//	@failure		500	{object}	error.Error
+//	@router			/users/{id} [put]
 func (a *API) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -140,6 +191,19 @@ func (a *API) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Delete godoc
+//
+//	@summary		Delete user
+//	@description	Delete user
+//	@tags			users
+//	@accept			json
+//	@produce		json
+//	@param			id	path	string	true	"User ID"
+//	@success		200
+//	@failure		400	{object}	error.Error
+//	@failure		404
+//	@failure		500	{object}	error.Error
+//	@router			/users/{id} [delete]
 func (a *API) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {

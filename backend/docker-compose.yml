@@ -9,7 +9,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: [ "sh", "-c", "/myapp/bin/migrate up && /myapp/bin/api" ]
+    command: [ "sh", "-c", "/backend/bin/migrate up && /backend/bin/api" ]
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/livez" ]
       interval: 5s
