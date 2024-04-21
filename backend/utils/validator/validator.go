@@ -26,8 +26,8 @@ func New() *validator.Validate {
 		return name
 	})
 
-	validate.RegisterValidation("alpha_space", isAlphaSpace)
-	validate.RegisterValidation("password", isPassword)
+	_ = validate.RegisterValidation("alpha_space", isAlphaSpace)
+	_ = validate.RegisterValidation("password", isPassword)
 
 	return validate
 }
@@ -50,6 +50,8 @@ func ToErrResponse(err error) *ErrResponse {
 				resp.Errors[i] = fmt.Sprintf("%s must be a valid email address", err.Field())
 			case "password":
 				resp.Errors[i] = fmt.Sprintf("%s must contain at least one uppercase letter, one lowercase letter, one digit, and one special character", err.Field())
+			case "required_without":
+				resp.Errors[i] = fmt.Sprintf("%s is required when another field is absent", err.Field())
 			default:
 				resp.Errors[i] = fmt.Sprintf("something wrong on %s; %s", err.Field(), err.Tag())
 			}

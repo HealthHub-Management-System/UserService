@@ -22,8 +22,8 @@ type Form struct {
 }
 
 type UpdateForm struct {
-	Name  string `json:"name" form:"required,alpha_space,max=255"`
-	Email string `json:"email" form:"required,email,max=255"`
+	Name  string `json:"name" form:"required_without=Email,alpha_space,max=255"`
+	Email string `json:"email" form:"required_without=Name,email,max=255"`
 }
 
 type User struct {

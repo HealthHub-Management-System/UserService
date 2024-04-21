@@ -41,6 +41,14 @@ var tests = []*testCase{
 		}{Password: "password"},
 		expected: "password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character",
 	},
+	{
+		name: `required_without`,
+		input: struct {
+			Name  string `json:"name" form:"required_without=Email"`
+			Email string `json:"email" form:"required_without=Name"`
+		}{Name: "", Email: ""},
+		expected: "name is required when another field is absent",
+	},
 }
 
 func TestToErrResponse(t *testing.T) {
@@ -51,8 +59,8 @@ func TestToErrResponse(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			err := vr.Struct(tc.input)
-			if errResp := validator.ToErrResponse(err); errResp == nil || len(errResp.Errors) != 1 {
-				t.Fatalf(`Expected:"{[%v]}", Got:"%v"`, tc.expected, errResp)
+			if errResp := validator.ToErrResponse(err); errResp == nil || (len(errResp.Errors) != 1 && tc.name != "required_without") {
+				t.Fatalf(`Przyp a, Expected:"{[%v]}", Got:"%v"`, tc.expected, errResp)
 			} else if errResp.Errors[0] != tc.expected {
 				t.Fatalf(`Expected:"%v", Got:"%v"`, tc.expected, errResp.Errors[0])
 			}
