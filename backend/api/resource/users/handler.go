@@ -171,7 +171,7 @@ func (a *API) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	form := &Form{}
+	form := &UpdateForm{}
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
 		a.logger.Error().Err(err).Msg("Update user failed")
 		e.ServerError(w, e.RespJSONDecodeFailure)

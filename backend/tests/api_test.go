@@ -144,7 +144,7 @@ func TestUpdateUser(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	user := &users.Form{Name: "name", Email: "email2@email.com", Password: "Pass@123"}
+	user := &users.UpdateForm{Name: "name", Email: "email2@email.com"}
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(usersAPI.Update)
