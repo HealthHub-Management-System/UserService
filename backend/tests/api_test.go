@@ -120,6 +120,7 @@ func TestGetUser(t *testing.T) {
 	err = json.NewDecoder(rr.Body).Decode(&user)
 	testUtil.NoError(t, err)
 
+	testUtil.Equal(t, user.ID, id)
 	testUtil.Equal(t, user.Name, "user1")
 	testUtil.Equal(t, user.Email, "email@email.com")
 }
