@@ -6,8 +6,10 @@ import (
 	mockDB "backend/utils/mock"
 	testUtil "backend/utils/test"
 	validatorUtil "backend/utils/validator"
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
@@ -92,4 +94,35 @@ func TestGetUser(t *testing.T) {
 
 	testUtil.Equal(t, user.Name, "user1")
 	testUtil.Equal(t, user.Email, "email@email.com")
+}
+
+func TestAddUser(t *testing.T) {
+	l := logger.New(false)
+	v := validatorUtil.New()
+	db, mock, err := mockDB.NewMockDB()
+	testUtil.NoError(t, err)
+
+	usersAPI := users.New(l, db, v)
+
+	id := uuid.New()
+	fmt.Println("Test", id)
+	mock.ExpectBegin()
+	mock.ExpectExec("^INSERT INTO \"users\" ").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	user := &users.Form{Name: "name", Email: "email@email.com", Password: "Password@123"}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(usersAPI.Create)
+
+	body, err := json.Marshal(user)
+	req, err := http.NewRequest("POST", "/api/v1/users", bytes.NewReader(body))
+	if err != nil {
+		t.Errorf("Error creating a new request: %v", err)
+	}
+
+	handler.ServeHTTP(rr, req)
+	status := rr.Code
+	testUtil.Equal(t, status, http.StatusCreated)
 }
