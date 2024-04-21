@@ -39,7 +39,7 @@ func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate) *API {
 //	@success		200	{array}		ListResponse
 //	@failure		500	{object}	error.Error
 //	@router			/users [get]
-func (a *API) List(w http.ResponseWriter, r *http.Request) {
+func (a *API) List(w http.ResponseWriter, _ *http.Request) {
 	users, err := a.repository.List()
 	if err != nil {
 		a.logger.Error().Err(err).Msg("List users failed")
@@ -48,7 +48,7 @@ func (a *API) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(users) == 0 {
-		fmt.Fprint(w, "[]")
+		_, _ = fmt.Fprint(w, "[]")
 		return
 	}
 
@@ -171,7 +171,7 @@ func (a *API) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	form := &Form{}
+	form := &UpdateForm{}
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
 		a.logger.Error().Err(err).Msg("Update user failed")
 		e.ServerError(w, e.RespJSONDecodeFailure)

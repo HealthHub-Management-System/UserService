@@ -1,4 +1,4 @@
-package users_test
+package tests_test
 
 import (
 	"testing"
@@ -25,9 +25,9 @@ func TestRepository_List(t *testing.T) {
 
 	mock.ExpectQuery("^SELECT (.+) FROM \"users\"").WillReturnRows(mockRows)
 
-	users, err := repo.List()
+	users_list, err := repo.List()
 	testUtil.NoError(t, err)
-	testUtil.Equal(t, len(users), 2)
+	testUtil.Equal(t, len(users_list), 2)
 }
 
 func TestRepository_Create(t *testing.T) {

@@ -21,6 +21,11 @@ type Form struct {
 	Password string `json:"password" form:"required,password,max=255"`
 }
 
+type UpdateForm struct {
+	Name  string `json:"name" form:"required_without=Email,alpha_space,max=255"`
+	Email string `json:"email" form:"required_without=Name,email,max=255"`
+}
+
 type User struct {
 	ID       uuid.UUID `gorm:"primarykey"`
 	Name     string
@@ -52,5 +57,14 @@ func (f *Form) ToModel() *User {
 		Name:     f.Name,
 		Email:    f.Email,
 		Password: f.Password,
+	}
+}
+
+func (f *UpdateForm) ToModel() *User {
+	return &User{
+		ID:       uuid.New(),
+		Name:     f.Name,
+		Email:    f.Email,
+		Password: "password",
 	}
 }
