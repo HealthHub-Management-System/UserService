@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
@@ -55,6 +54,35 @@ func TestGetUsers(t *testing.T) {
 	testUtil.Equal(t, responseUsers[1].Name, "user2")
 }
 
+func TestAddUser(t *testing.T) {
+	l := logger.New(false)
+	v := validatorUtil.New()
+	db, mock, err := mockDB.NewMockDB()
+	testUtil.NoError(t, err)
+
+	usersAPI := users.New(l, db, v)
+
+	mock.ExpectBegin()
+	mock.ExpectExec("^INSERT INTO \"users\" ").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	user := &users.Form{Name: "name", Email: "email@email.com", Password: "Password@123"}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(usersAPI.Create)
+
+	body, err := json.Marshal(user)
+	req, err := http.NewRequest("POST", "/api/v1/users", bytes.NewReader(body))
+	if err != nil {
+		t.Errorf("Error creating a new request: %v", err)
+	}
+
+	handler.ServeHTTP(rr, req)
+	status := rr.Code
+	testUtil.Equal(t, status, http.StatusCreated)
+}
+
 func TestGetUser(t *testing.T) {
 	idString := "c50abe98-7f20-4cb9-b4a8-fbef37988e7f"
 	req, err := http.NewRequest("GET", "/api/v1/users/{id}", nil)
@@ -96,7 +124,9 @@ func TestGetUser(t *testing.T) {
 	testUtil.Equal(t, user.Email, "email@email.com")
 }
 
-func TestAddUser(t *testing.T) {
+func TestUpdateUser(t *testing.T) {
+	idString := "c50abe98-7f20-4cb9-b4a8-fbef37988e7f"
+
 	l := logger.New(false)
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
@@ -104,25 +134,67 @@ func TestAddUser(t *testing.T) {
 
 	usersAPI := users.New(l, db, v)
 
-	id := uuid.New()
-	fmt.Println("Test", id)
+	id, err := uuid.Parse(idString)
+	_ = sqlmock.NewRows([]string{"id", "name", "email"}).
+		AddRow(id, "user1", "email@email.com")
+	testUtil.NoError(t, err)
 	mock.ExpectBegin()
-	mock.ExpectExec("^INSERT INTO \"users\" ").
+	mock.ExpectExec("^UPDATE \"users\" SET").
+		WithArgs("name", "email2@email.com", id).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	user := &users.Form{Name: "name", Email: "email@email.com", Password: "Password@123"}
+	user := &users.Form{Name: "name", Email: "email2@email.com", Password: "Pass@123"}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(usersAPI.Create)
+	handler := http.HandlerFunc(usersAPI.Update)
 
 	body, err := json.Marshal(user)
-	req, err := http.NewRequest("POST", "/api/v1/users", bytes.NewReader(body))
+	req, err := http.NewRequest("POST", "/api/v1/users/{id}", bytes.NewReader(body))
 	if err != nil {
 		t.Errorf("Error creating a new request: %v", err)
 	}
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add("id", idString)
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 	handler.ServeHTTP(rr, req)
 	status := rr.Code
-	testUtil.Equal(t, status, http.StatusCreated)
+	testUtil.Equal(t, status, http.StatusOK)
+}
+
+func TestDeleteUser(t *testing.T) {
+	idString := "c50abe98-7f20-4cb9-b4a8-fbef37988e7f"
+
+	l := logger.New(false)
+	v := validatorUtil.New()
+	db, mock, err := mockDB.NewMockDB()
+	testUtil.NoError(t, err)
+
+	usersAPI := users.New(l, db, v)
+
+	id, err := uuid.Parse(idString)
+	testUtil.NoError(t, err)
+	_ = sqlmock.NewRows([]string{"id", "name", "email"}).
+		AddRow(id, "user1", "email@email.com")
+	mock.ExpectBegin()
+	mock.ExpectExec("^DELETE FROM \"users\" WHERE").
+		WithArgs(id).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(usersAPI.Delete)
+
+	req, err := http.NewRequest("DELETE", "/api/v1/users/{id}", nil)
+	if err != nil {
+		t.Errorf("Error creating a new request: %v", err)
+	}
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add("id", idString)
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+	handler.ServeHTTP(rr, req)
+	status := rr.Code
+	testUtil.Equal(t, status, http.StatusOK)
 }
