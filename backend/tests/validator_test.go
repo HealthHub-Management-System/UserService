@@ -60,7 +60,7 @@ func TestToErrResponse(t *testing.T) {
 			t.Parallel()
 			err := vr.Struct(tc.input)
 			if errResp := validator.ToErrResponse(err); errResp == nil || (len(errResp.Errors) != 1 && tc.name != "required_without") {
-				t.Fatalf(`Przyp a, Expected:"{[%v]}", Got:"%v"`, tc.expected, errResp)
+				t.Fatalf(`Expected:"{[%v]}", Got:"%v"`, tc.expected, errResp)
 			} else if errResp.Errors[0] != tc.expected {
 				t.Fatalf(`Expected:"%v", Got:"%v"`, tc.expected, errResp.Errors[0])
 			}
