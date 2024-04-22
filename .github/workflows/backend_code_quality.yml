@@ -24,6 +24,6 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - name: Install dependencies
-      run: go get .
+      run: go get ./backend
     - name: Test with Go
-      run: go test ./tests
+      run: go test ./backend/tests
