@@ -1,0 +1,27 @@
+name: Check and test the source code
+on:
+  pull_request:
+    branches:
+    - master
+    paths:
+    - 'backend/**'
+jobs:
+  test:
+    name: Check the source code
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: './backend'
+    strategy:
+      matrix:
+        go-version: ['1.22.x']
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Install dependencies
+      run: go get .
+    - name: Test with Go
+      run: go test ./tests
