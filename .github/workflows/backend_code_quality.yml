@@ -23,7 +23,7 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: ${{ matrix.go-version }}
-    - name: Install dependencies
-      run: go get ./backend
+    - name: Run build
+      run: go build .
     - name: Test with Go
-      run: go test ./backend/tests
+      run: go test ./tests
