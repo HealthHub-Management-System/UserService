@@ -26,7 +26,9 @@ var (
 
 func main() {
 	flags.Usage = usage
-	flags.Parse(os.Args[1:])
+	if err := flags.Parse(os.Args[1:]); err != nil {
+		log.Fatalf("Parsing failed: %s", err)
+	}
 
 	args := flags.Args()
 	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
@@ -52,13 +54,13 @@ func main() {
 
 	if err := func() error {
 		var (
-			dir  string   = *dir
-			args []string = args[1:]
+			dir  = *dir
+			args = args[1:]
 		)
 		ctx := context.Background()
 		return goose.RunContext(ctx, command, db, dir, args...)
 	}(); err != nil {
-		log.Fatalf("migrate %v: %v", command, err)
+		log.Panicf("migrate %v: %v", command, err)
 	}
 }
 

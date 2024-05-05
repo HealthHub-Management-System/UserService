@@ -3,7 +3,7 @@ package users
 import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	_ "gorm.io/gorm"
+	_ "gorm.io/gorm" // nolint
 )
 
 var GenerateHash = func(password []byte) ([]byte, error) {

@@ -11,7 +11,7 @@ import (
 	"backend/api/resource/users"
 	"backend/api/router/middleware"
 
-	_ "backend/docs"
+	_ "backend/docs" // Swagger API documentation
 
 	httpSwagger "github.com/swaggo/http-swagger"
 )

@@ -31,7 +31,9 @@ type ConfDatabase struct {
 }
 
 func New() *Conf {
-	godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Failed to load env: %s", err)
+	}
 
 	var c Conf
 	if err := envdecode.StrictDecode(&c); err != nil {
@@ -42,7 +44,9 @@ func New() *Conf {
 }
 
 func NewDatabase() *ConfDatabase {
-	godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Failed to load env: %s", err)
+	}
 
 	var c ConfDatabase
 	if err := envdecode.StrictDecode(&c); err != nil {

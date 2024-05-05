@@ -1,6 +1,7 @@
 package error
 
 import (
+	"log"
 	"net/http"
 )
 
@@ -26,12 +27,16 @@ type Errors struct {
 
 func ServerError(w http.ResponseWriter, error []byte) {
 	w.WriteHeader(http.StatusInternalServerError)
-	w.Write(error)
+	if _, err := w.Write(error); err != nil {
+		log.Fatalf("Write failed: %s", err)
+	}
 }
 
 func BadRequest(w http.ResponseWriter, error []byte) {
 	w.WriteHeader(http.StatusBadRequest)
-	w.Write(error)
+	if _, err := w.Write(error); err != nil {
+		log.Fatalf("Write failed: %s", err)
+	}
 }
 
 func NotFound(w http.ResponseWriter) {
@@ -40,5 +45,7 @@ func NotFound(w http.ResponseWriter) {
 
 func ValidationErrors(w http.ResponseWriter, reps []byte) {
 	w.WriteHeader(http.StatusUnprocessableEntity)
-	w.Write(reps)
+	if _, err := w.Write(reps); err != nil {
+		log.Fatalf("Write failed: %s", err)
+	}
 }

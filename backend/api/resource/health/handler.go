@@ -9,4 +9,4 @@ import "net/http"
 //	@tags           health
 //	@success        200
 //	@router         /../livez [get]
-func Read(w http.ResponseWriter, r *http.Request) {}
+func Read(_ http.ResponseWriter, _ *http.Request) {}
