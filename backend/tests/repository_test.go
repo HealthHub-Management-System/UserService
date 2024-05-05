@@ -1,6 +1,7 @@
 package tests_test
 
 import (
+	"golang.org/x/crypto/bcrypt"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -38,14 +39,15 @@ func TestRepository_Create(t *testing.T) {
 
 	repo := users.NewRepository(db)
 
+	password, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.MinCost)
 	id := uuid.New()
 	mock.ExpectBegin()
 	mock.ExpectExec("^INSERT INTO \"users\" ").
-		WithArgs(id, "name", "email", "password").
+		WithArgs(id, "name", "email", password).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	user := &users.User{ID: id, Name: "name", Email: "email", Password: "password"}
+	user := &users.User{ID: id, Name: "name", Email: "email", Password: password}
 	_, err = repo.Create(user)
 	testUtil.NoError(t, err)
 }
@@ -89,7 +91,8 @@ func TestRepository_Update(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	user := &users.User{ID: id, Name: "name", Email: "email", Password: "password"}
+	password, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
+	user := &users.User{ID: id, Name: "name", Email: "email", Password: password}
 	rows, err := repo.Update(user)
 	testUtil.NoError(t, err)
 	testUtil.Equal(t, 1, rows)
