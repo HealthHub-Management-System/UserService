@@ -39,7 +39,7 @@ func TestRepository_Create(t *testing.T) {
 
 	repo := users.NewRepository(db)
 
-	password, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.MinCost)
+	password, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 	id := uuid.New()
 	mock.ExpectBegin()
 	mock.ExpectExec("^INSERT INTO \"users\" ").

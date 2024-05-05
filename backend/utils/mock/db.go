@@ -1,4 +1,4 @@
-package db
+package mock
 
 import (
 	"database/sql/driver"

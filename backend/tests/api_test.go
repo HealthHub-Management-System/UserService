@@ -12,6 +12,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -60,7 +61,7 @@ func TestAddUser(t *testing.T) {
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
 
-	usersAPI := users.New(l, db, v)
+	usersAPI := mockDB.NewMockAPI(l, db, v)
 
 	mock.ExpectBegin()
 	mock.ExpectExec("^INSERT INTO \"users\" ").
@@ -80,7 +81,10 @@ func TestAddUser(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 	status := rr.Code
+	pass := rr.Body.Bytes()
+	passwordMatch := bcrypt.CompareHashAndPassword(pass, []byte("Password@123"))
 	testUtil.Equal(t, status, http.StatusCreated)
+	testUtil.Equal(t, passwordMatch, nil)
 }
 
 func TestGetUser(t *testing.T) {
