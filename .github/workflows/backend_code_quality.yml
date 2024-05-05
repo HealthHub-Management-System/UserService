@@ -23,12 +23,24 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: ${{ matrix.go-version }}
-    - name: Check
-      run: ls -la
-    - name: golangci-lint
-      uses: golangci/golangci-lint-action@v3
-      with:
-        version: v1.58.0
-        args: --timeout 3m --config ./.golangci-lint.yml
     - name: Test with Go
       run: go test ./tests
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        go-version: ['1.22.x']
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache: false
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.58.0
+          working-directory: './backend'
+          args: --timeout 3m --config .golangci-lint.yml
