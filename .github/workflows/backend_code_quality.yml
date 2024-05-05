@@ -23,6 +23,8 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: ${{ matrix.go-version }}
+    - name: Check
+      run: ls -la
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v3
       with:
