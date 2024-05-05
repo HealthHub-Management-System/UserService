@@ -2,8 +2,13 @@ package users
 
 import (
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	_ "gorm.io/gorm"
 )
+
+var GenerateHash = func(password []byte) ([]byte, error) {
+	return bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+}
 
 type ListResponse struct {
 	Users []*UserResponse `json:"users"`
@@ -30,7 +35,7 @@ type User struct {
 	ID       uuid.UUID `gorm:"primarykey"`
 	Name     string
 	Email    string
-	Password string
+	Password []byte
 }
 
 type Users []*User
@@ -52,11 +57,13 @@ func (users Users) ToResponse() *ListResponse {
 }
 
 func (f *Form) ToModel() *User {
+	password, _ := GenerateHash([]byte(f.Password))
+
 	return &User{
 		ID:       uuid.New(),
 		Name:     f.Name,
 		Email:    f.Email,
-		Password: f.Password,
+		Password: password,
 	}
 }
 
@@ -65,6 +72,6 @@ func (f *UpdateForm) ToModel() *User {
 		ID:       uuid.New(),
 		Name:     f.Name,
 		Email:    f.Email,
-		Password: "password",
+		Password: []byte("password"),
 	}
 }
