@@ -26,13 +26,6 @@ func NewMockAPI(l *zerolog.Logger, db *gorm.DB, v *validator.Validate) *mockAPI 
 	}
 }
 
-func (a *mockAPI) GetUUID() uuid.UUID {
-	return uuid.UUID{
-		0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA,
-		0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA,
-	}
-}
-
 func (a *mockAPI) Create(w http.ResponseWriter, r *http.Request) {
 	form := &users.Form{}
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
@@ -54,7 +47,7 @@ func (a *mockAPI) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newUser := form.ToModel()
-	newUser.ID = a.GetUUID()
+	newUser.ID = uuid.New()
 
 	_, err := a.repository.Create(newUser)
 	if err != nil {
