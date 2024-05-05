@@ -15,6 +15,8 @@ import (
 	validatorUtil "backend/utils/validator"
 )
 
+var GetUUID = uuid.New
+
 type API struct {
 	repository *Repository
 	validator  *validator.Validate
@@ -93,7 +95,7 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newUser := form.ToModel()
-	newUser.ID = uuid.New()
+	newUser.ID = GetUUID()
 
 	_, err := a.repository.Create(newUser)
 	if err != nil {

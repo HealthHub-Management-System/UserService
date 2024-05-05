@@ -12,7 +12,6 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -61,10 +60,28 @@ func TestAddUser(t *testing.T) {
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
 
-	usersAPI := mockDB.NewMockAPI(l, db, v)
+	usersAPI := users.New(l, db, v)
+	old := users.GetUUID
+	defer func() { users.GetUUID = old }()
+	users.GetUUID = func() uuid.UUID {
+		return uuid.UUID{
+			0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA,
+			0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA,
+		}
+	}
+	oldHash := users.GenerateHash
+	defer func() { users.GenerateHash = oldHash }()
+	users.GenerateHash = func(password []byte) ([]byte, error) {
+		hash := []byte{36, 50, 97, 36, 49, 48, 36, 76, 74, 53, 49, 56, 116, 87, 119, 86, 65, 74, 98, 87, 104, 49,
+			106, 86, 72, 97, 51, 89, 117, 101, 80, 98, 83, 104, 118, 54, 74, 97, 56, 48, 98, 68, 78, 101, 71, 104, 50,
+			73, 84, 109, 73, 100, 101, 112, 47, 69, 84, 114, 70, 117}
+		return hash, nil
+	}
 
+	password, _ := users.GenerateHash([]byte("password"))
 	mock.ExpectBegin()
 	mock.ExpectExec("^INSERT INTO \"users\" ").
+		WithArgs(users.GetUUID(), "name", "email@email.com", password).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
@@ -81,10 +98,7 @@ func TestAddUser(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 	status := rr.Code
-	pass := rr.Body.Bytes()
-	passwordMatch := bcrypt.CompareHashAndPassword(pass, []byte("Password@123"))
 	testUtil.Equal(t, status, http.StatusCreated)
-	testUtil.Equal(t, passwordMatch, nil)
 }
 
 func TestGetUser(t *testing.T) {

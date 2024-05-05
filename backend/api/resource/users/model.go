@@ -6,6 +6,10 @@ import (
 	_ "gorm.io/gorm"
 )
 
+var GenerateHash = func(password []byte) ([]byte, error) {
+	return bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+}
+
 type ListResponse struct {
 	Users []*UserResponse `json:"users"`
 }
@@ -53,7 +57,7 @@ func (users Users) ToResponse() *ListResponse {
 }
 
 func (f *Form) ToModel() *User {
-	password, _ := bcrypt.GenerateFromPassword([]byte(f.Password), bcrypt.DefaultCost)
+	password, _ := GenerateHash([]byte(f.Password))
 
 	return &User{
 		ID:       uuid.New(),
