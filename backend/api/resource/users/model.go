@@ -68,12 +68,10 @@ func (f *Form) ToModel() *User {
 }
 
 func (f *UpdateForm) ToModel() *User {
-	password, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
-
 	return &User{
 		ID:       uuid.New(),
 		Name:     f.Name,
 		Email:    f.Email,
-		Password: password,
+		Password: []byte("password"),
 	}
 }
