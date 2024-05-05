@@ -27,6 +27,6 @@ jobs:
       uses: golangci/golangci-lint-action@v3
       with:
         version: v1.58.0
-        args: --timeout 3m --config .golangci-lint.yml
+        args: --timeout 3m --config ./.golangci-lint.yml
     - name: Test with Go
       run: go test ./tests
