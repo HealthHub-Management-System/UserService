@@ -15,18 +15,13 @@ definitions:
   users.Form:
     properties:
       email:
-        maxLength: 255
         type: string
       name:
-        maxLength: 255
         type: string
       password:
-        maxLength: 255
         type: string
-    required:
-    - email
-    - name
-    - password
+      role:
+        $ref: '#/definitions/users.Role'
     type: object
   users.ListResponse:
     properties:
@@ -35,6 +30,18 @@ definitions:
           $ref: '#/definitions/users.UserResponse'
         type: array
     type: object
+  users.Role:
+    enum:
+    - unknown
+    - patient
+    - doctor
+    - admin
+    type: string
+    x-enum-varnames:
+    - Unknown
+    - Patient
+    - Doctor
+    - Admin
   users.UserResponse:
     properties:
       email:
@@ -42,6 +49,8 @@ definitions:
       id:
         type: string
       name:
+        type: string
+      role:
         type: string
     type: object
 host: localhost:8080
