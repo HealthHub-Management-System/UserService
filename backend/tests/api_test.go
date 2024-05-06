@@ -9,12 +9,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/go-chi/chi"
-	"github.com/google/uuid"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/go-chi/chi"
+	"github.com/google/uuid"
 )
 
 func TestGetUsers(t *testing.T) {
@@ -31,9 +32,9 @@ func TestGetUsers(t *testing.T) {
 
 	usersAPI := users.New(l, db, v)
 	id := uuid.New()
-	mockRows := sqlmock.NewRows([]string{"id", "name", "email"}).
-		AddRow(id, "user1", "email@email.com").
-		AddRow(uuid.New(), "user2", "email2@email.com")
+	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
+		AddRow(id, "user1", "email@email.com", "patient").
+		AddRow(uuid.New(), "user2", "email2@email.com", "doctor")
 
 	mock.ExpectQuery("^SELECT (.*) FROM \"users\"").WillReturnRows(mockRows)
 
@@ -52,6 +53,8 @@ func TestGetUsers(t *testing.T) {
 	testUtil.Equal(t, len(responseUsers), 2)
 	testUtil.Equal(t, responseUsers[0].Name, "user1")
 	testUtil.Equal(t, responseUsers[1].Name, "user2")
+	testUtil.Equal(t, responseUsers[0].Role, "patient")
+	testUtil.Equal(t, responseUsers[1].Role, "doctor")
 }
 
 func TestAddUser(t *testing.T) {
@@ -81,16 +84,16 @@ func TestAddUser(t *testing.T) {
 	password, _ := users.GenerateHash([]byte("password"))
 	mock.ExpectBegin()
 	mock.ExpectExec("^INSERT INTO \"users\" ").
-		WithArgs(users.GetUUID(), "name", "email@email.com", password).
+		WithArgs(users.GetUUID(), "name", "email@email.com", password, "patient").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	user := &users.Form{Name: "name", Email: "email@email.com", Password: "Password@123"}
+	user := &users.Form{Name: "name", Email: "email@email.com", Password: "Password@123", Role: "patient"}
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(usersAPI.Create)
 
-	body, err := json.Marshal(user)
+	body, _ := json.Marshal(user)
 	req, err := http.NewRequest("POST", "/api/v1/users", bytes.NewReader(body))
 	if err != nil {
 		t.Errorf("Error creating a new request: %v", err)
@@ -120,8 +123,8 @@ func TestGetUser(t *testing.T) {
 	id, err := uuid.Parse(idString)
 	testUtil.NoError(t, err)
 	usersAPI := users.New(l, db, v)
-	mockRows := sqlmock.NewRows([]string{"id", "name", "email"}).
-		AddRow(id, "user1", "email@email.com")
+	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
+		AddRow(id, "user1", "email@email.com", "admin")
 
 	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
 		WithArgs(id, 1).
@@ -141,6 +144,7 @@ func TestGetUser(t *testing.T) {
 	testUtil.Equal(t, user.ID, id)
 	testUtil.Equal(t, user.Name, "user1")
 	testUtil.Equal(t, user.Email, "email@email.com")
+	testUtil.Equal(t, user.Role, "admin")
 }
 
 func TestUpdateUser(t *testing.T) {
@@ -154,8 +158,8 @@ func TestUpdateUser(t *testing.T) {
 	usersAPI := users.New(l, db, v)
 
 	id, err := uuid.Parse(idString)
-	_ = sqlmock.NewRows([]string{"id", "name", "email"}).
-		AddRow(id, "user1", "email@email.com")
+	_ = sqlmock.NewRows([]string{"id", "name", "email", "role"}).
+		AddRow(id, "user1", "email@email.com", "patient")
 	testUtil.NoError(t, err)
 	mock.ExpectBegin()
 	mock.ExpectExec("^UPDATE \"users\" SET").
@@ -163,12 +167,19 @@ func TestUpdateUser(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
+	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
+		AddRow(id, "user1", "email@email.com", "admin")
+
+	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
+		WithArgs(id, 1).
+		WillReturnRows(mockRows)
+
 	user := &users.UpdateForm{Name: "name", Email: "email2@email.com"}
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(usersAPI.Update)
 
-	body, err := json.Marshal(user)
+	body, _ := json.Marshal(user)
 	req, err := http.NewRequest("POST", "/api/v1/users/{id}", bytes.NewReader(body))
 	if err != nil {
 		t.Errorf("Error creating a new request: %v", err)
@@ -194,8 +205,8 @@ func TestDeleteUser(t *testing.T) {
 
 	id, err := uuid.Parse(idString)
 	testUtil.NoError(t, err)
-	_ = sqlmock.NewRows([]string{"id", "name", "email"}).
-		AddRow(id, "user1", "email@email.com")
+	_ = sqlmock.NewRows([]string{"id", "name", "email", "role"}).
+		AddRow(id, "user1", "email@email.com", "patient")
 	mock.ExpectBegin()
 	mock.ExpectExec("^DELETE FROM \"users\" WHERE").
 		WithArgs(id).

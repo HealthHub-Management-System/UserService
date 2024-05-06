@@ -1,8 +1,9 @@
 package tests_test
 
 import (
-	"golang.org/x/crypto/bcrypt"
 	"testing"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
@@ -20,9 +21,9 @@ func TestRepository_List(t *testing.T) {
 
 	repo := users.NewRepository(db)
 
-	mockRows := sqlmock.NewRows([]string{"id", "name", "email"}).
-		AddRow(uuid.New(), "user1", "email1@email.com").
-		AddRow(uuid.New(), "user2", "email2@email.com")
+	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
+		AddRow(uuid.New(), "user1", "email1@email.com", "patient").
+		AddRow(uuid.New(), "user2", "email2@email.com", "patient")
 
 	mock.ExpectQuery("^SELECT (.+) FROM \"users\"").WillReturnRows(mockRows)
 
@@ -43,11 +44,11 @@ func TestRepository_Create(t *testing.T) {
 	id := uuid.New()
 	mock.ExpectBegin()
 	mock.ExpectExec("^INSERT INTO \"users\" ").
-		WithArgs(id, "name", "email", password).
+		WithArgs(id, "name", "email", password, "patient").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	user := &users.User{ID: id, Name: "name", Email: "email", Password: password}
+	user := &users.User{ID: id, Name: "name", Email: "email", Password: password, Role: users.Patient}
 	_, err = repo.Create(user)
 	testUtil.NoError(t, err)
 }
@@ -61,8 +62,8 @@ func TestRepository_Read(t *testing.T) {
 	repo := users.NewRepository(db)
 
 	id := uuid.New()
-	mockRows := sqlmock.NewRows([]string{"id", "name", "email"}).
-		AddRow(id, "user1", "email@email.com")
+	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
+		AddRow(id, "user1", "email@email.com", "patient")
 
 	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
 		WithArgs(id, 1).
@@ -82,8 +83,8 @@ func TestRepository_Update(t *testing.T) {
 	repo := users.NewRepository(db)
 
 	id := uuid.New()
-	_ = sqlmock.NewRows([]string{"id", "name", "email"}).
-		AddRow(id, "user1", "email@email.com")
+	_ = sqlmock.NewRows([]string{"id", "name", "email", "role"}).
+		AddRow(id, "user1", "email@email.com", "patient")
 
 	mock.ExpectBegin()
 	mock.ExpectExec("^UPDATE \"users\" SET").
@@ -92,7 +93,7 @@ func TestRepository_Update(t *testing.T) {
 	mock.ExpectCommit()
 
 	password, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
-	user := &users.User{ID: id, Name: "name", Email: "email", Password: password}
+	user := &users.User{ID: id, Name: "name", Email: "email", Password: password, Role: users.Patient}
 	rows, err := repo.Update(user)
 	testUtil.NoError(t, err)
 	testUtil.Equal(t, 1, rows)
@@ -107,8 +108,8 @@ func TestRepository_Delete(t *testing.T) {
 	repo := users.NewRepository(db)
 
 	id := uuid.New()
-	_ = sqlmock.NewRows([]string{"id", "name", "email"}).
-		AddRow(id, "user1", "email@email.com")
+	_ = sqlmock.NewRows([]string{"id", "name", "email", "role"}).
+		AddRow(id, "user1", "email@email.com", "patient")
 
 	mock.ExpectBegin()
 	mock.ExpectExec("^DELETE FROM \"users\" WHERE").
