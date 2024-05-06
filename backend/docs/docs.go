@@ -281,23 +281,18 @@ const docTemplate = `{
         },
         "users.Form": {
             "type": "object",
-            "required": [
-                "email",
-                "name",
-                "password"
-            ],
             "properties": {
                 "email": {
-                    "type": "string",
-                    "maxLength": 255
+                    "type": "string"
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 255
+                    "type": "string"
                 },
                 "password": {
-                    "type": "string",
-                    "maxLength": 255
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/users.Role"
                 }
             }
         },
@@ -312,6 +307,21 @@ const docTemplate = `{
                 }
             }
         },
+        "users.Role": {
+            "type": "string",
+            "enum": [
+                "unknown",
+                "patient",
+                "doctor",
+                "admin"
+            ],
+            "x-enum-varnames": [
+                "Unknown",
+                "Patient",
+                "Doctor",
+                "Admin"
+            ]
+        },
         "users.UserResponse": {
             "type": "object",
             "properties": {
@@ -322,6 +332,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "role": {
                     "type": "string"
                 }
             }

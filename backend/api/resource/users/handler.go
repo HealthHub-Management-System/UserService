@@ -105,6 +105,12 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+	response := newUser.ToResponse()
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		a.logger.Error().Err(err).Msg("Create user failed")
+		e.ServerError(w, e.RespJSONEncodeFailure)
+		return
+	}
 }
 
 // Read godoc
@@ -203,6 +209,25 @@ func (a *API) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	if rows == 0 {
 		e.NotFound(w)
+		return
+	}
+
+	updatedUser, err := a.repository.Read(id)
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Update user failed")
+		if err == gorm.ErrRecordNotFound {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		e.ServerError(w, e.RespDBDataAccessFailure)
+		return
+	}
+
+	response := updatedUser.ToResponse()
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		a.logger.Error().Err(err).Msg("Update user failed")
+		e.ServerError(w, e.RespJSONEncodeFailure)
 		return
 	}
 }

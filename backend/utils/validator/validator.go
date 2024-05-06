@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -28,6 +29,7 @@ func New() *validator.Validate {
 
 	_ = validate.RegisterValidation("alpha_space", isAlphaSpace)
 	_ = validate.RegisterValidation("password", isPassword)
+	_ = validate.RegisterValidation("role", isRole)
 
 	return validate
 }
@@ -50,6 +52,8 @@ func ToErrResponse(err error) *ErrResponse {
 				resp.Errors[i] = fmt.Sprintf("%s must be a valid email address", err.Field())
 			case "password":
 				resp.Errors[i] = fmt.Sprintf("%s must contain at least one uppercase letter, one lowercase letter, one digit, and one special character", err.Field())
+			case "role":
+				resp.Errors[i] = fmt.Sprintf("%s must be one of the following: patient, doctor, admin", err.Field())
 			case "required_without":
 				resp.Errors[i] = fmt.Sprintf("%s is required when another field is absent", err.Field())
 			default:
@@ -83,4 +87,11 @@ func isPassword(fl validator.FieldLevel) bool {
 	hasSpecial := regexp.MustCompile(`[^a-zA-Z0-9]`).MatchString(password)
 
 	return hasUpperCase && hasLowerCase && hasDigit && hasSpecial
+}
+
+func isRole(fl validator.FieldLevel) bool {
+	role := fl.Field().String()
+	roles := []string{"patient", "doctor", "admin"}
+
+	return slices.Contains(roles, role)
 }
