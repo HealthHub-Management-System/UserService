@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/gorilla/sessions"
 	"github.com/rs/zerolog"
 	"gorm.io/gorm"
 
@@ -22,13 +23,15 @@ type API struct {
 	repository *Repository
 	validator  *validator.Validate
 	logger     *zerolog.Logger
+	store      *sessions.CookieStore
 }
 
-func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate) *API {
+func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *sessions.CookieStore) *API {
 	return &API{
 		repository: NewRepository(db),
 		validator:  v,
 		logger:     l,
+		store:      s,
 	}
 }
 
@@ -283,6 +286,28 @@ func (a *API) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	if rows == 0 {
 		e.NotFound(w)
+		return
+	}
+}
+
+// Login godoc
+//
+//	@summary		Login user
+//	@description	Login user
+//	@tags			users
+//	@accept			json
+//	@produce		json
+//	@param			body	body	Form	true	"Login form"
+//	@success		200
+//	@failure		401	{object}	error.Error
+//	@failure		422	{object}	error.Errors
+//	@failure		500	{object}	error.Error
+//	@router			/users/login [post]
+func (a *API) Login(w http.ResponseWriter, r *http.Request) {
+	form := &LoginForm{}
+	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
+		a.logger.Error().Err(err).Msg("Login user failed")
+		e.ServerError(w, e.RespJSONDecodeFailure)
 		return
 	}
 }

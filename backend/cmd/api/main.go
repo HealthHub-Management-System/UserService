@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
 
@@ -30,6 +31,7 @@ func main() {
 	c := config.New()
 	l := logger.New(c.Server.Debug)
 	v := validatorUtil.New()
+	store := sessions.NewCookieStore([]byte("chuj"))
 
 	var logLevel gormlogger.LogLevel
 	if c.Database.Debug {
@@ -45,7 +47,7 @@ func main() {
 		return
 	}
 
-	r := router.New(l, db, v)
+	r := router.New(l, db, v, store)
 
 	s := &http.Server{
 		Addr:         fmt.Sprintf(":%d", c.Server.Port),

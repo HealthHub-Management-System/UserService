@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/gorilla/sessions"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -29,8 +30,9 @@ func TestGetUsers(t *testing.T) {
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
+	s := sessions.NewCookieStore([]byte("key"))
 
-	usersAPI := users.New(l, db, v)
+	usersAPI := users.New(l, db, v, s)
 	id := uuid.New()
 	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
 		AddRow(id, "user1", "email@email.com", "patient").
@@ -63,8 +65,9 @@ func TestAddUser(t *testing.T) {
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
+	s := sessions.NewCookieStore([]byte("key"))
 
-	usersAPI := users.New(l, db, v)
+	usersAPI := users.New(l, db, v, s)
 	old := users.GetUUID
 	defer func() { users.GetUUID = old }()
 	users.GetUUID = func() uuid.UUID {
@@ -120,10 +123,11 @@ func TestGetUser(t *testing.T) {
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
+	s := sessions.NewCookieStore([]byte("key"))
 
 	id, err := uuid.Parse(idString)
 	testUtil.NoError(t, err)
-	usersAPI := users.New(l, db, v)
+	usersAPI := users.New(l, db, v, s)
 	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
 		AddRow(id, "user1", "email@email.com", "admin")
 
@@ -155,8 +159,9 @@ func TestUpdateUser(t *testing.T) {
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
+	s := sessions.NewCookieStore([]byte("key"))
 
-	usersAPI := users.New(l, db, v)
+	usersAPI := users.New(l, db, v, s)
 
 	id, err := uuid.Parse(idString)
 	_ = sqlmock.NewRows([]string{"id", "name", "email", "role"}).
@@ -201,8 +206,9 @@ func TestDeleteUser(t *testing.T) {
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
+	s := sessions.NewCookieStore([]byte("key"))
 
-	usersAPI := users.New(l, db, v)
+	usersAPI := users.New(l, db, v, s)
 
 	id, err := uuid.Parse(idString)
 	testUtil.NoError(t, err)
