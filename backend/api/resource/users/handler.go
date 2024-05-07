@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	e "backend/api/resource/common/error"
+	"backend/utils/pagination"
 	validatorUtil "backend/utils/validator"
 )
 
@@ -38,26 +39,47 @@ func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate) *API {
 //	@tags			users
 //	@accept			json
 //	@produce		json
-//	@success		200	{array}		ListResponse
+//	@param			page	query	int	false	"Page number"
+//	@param			limit	query	int	false	"Number of items per page"
+//	@success		200	{object}	ListResponse
 //	@failure		500	{object}	error.Error
 //	@router			/users [get]
-func (a *API) List(w http.ResponseWriter, _ *http.Request) {
-	users, err := a.repository.List()
+func (a *API) List(w http.ResponseWriter, r *http.Request) {
+	pagination := &pagination.Pagination{}
+	pagination.Parse(r.URL.Query())
+	if err := a.validator.Struct(pagination); err != nil {
+		a.logger.Error().Err(err).Msg("List users failed")
+		respBody, err := json.Marshal(validatorUtil.ToErrResponse(err))
+		if err != nil {
+			e.ServerError(w, e.RespJSONEncodeFailure)
+			return
+		}
+
+		e.ValidationErrors(w, respBody)
+		return
+	}
+
+	pagination, err := a.repository.List(*pagination)
 	if err != nil {
 		a.logger.Error().Err(err).Msg("List users failed")
 		e.ServerError(w, e.RespDBDataAccessFailure)
 		return
 	}
 
-	if len(users) == 0 {
-		_, _ = fmt.Fprint(w, "[]")
-		return
-	}
+	if users, ok := pagination.Rows.(Users); ok {
+		response := users.ToResponse()
+		response.TotalItems = pagination.TotalRows
+		response.NumberOfPages = pagination.TotalPages
+		response.CurrentPage = pagination.Page
 
-	if err := json.NewEncoder(w).Encode(users.ToResponse()); err != nil {
-		a.logger.Error().Err(err).Msg("List users failed")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			a.logger.Error().Err(err).Msg("List users failed")
+			e.ServerError(w, e.RespJSONEncodeFailure)
+			return
+		}
+	} else {
+		a.logger.Error().Msg("List users failed")
 		e.ServerError(w, e.RespJSONEncodeFailure)
-		return
 	}
 }
 
@@ -69,7 +91,7 @@ func (a *API) List(w http.ResponseWriter, _ *http.Request) {
 //	@accept			json
 //	@produce		json
 //	@param			body	body	Form	true	"User form"
-//	@success		201
+//	@success		201 {object}	UserResponse
 //	@failure		400	{object}	error.Error
 //	@failure		422	{object}	error.Errors
 //	@failure		500	{object}	error.Error
@@ -165,7 +187,7 @@ func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 //	@produce		json
 //	@param			id		path	string	true	"User ID"
 //	@param			body	body	Form	true	"User form"
-//	@success		200
+//	@success		200 {object}	UserResponse
 //	@failure		400	{object}	error.Error
 //	@failure		404
 //	@failure		422	{object}	error.Errors

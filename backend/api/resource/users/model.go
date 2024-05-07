@@ -34,7 +34,10 @@ func ToRole(s string) Role {
 }
 
 type ListResponse struct {
-	Users []*UserResponse `json:"users"`
+	Users         []*UserResponse `json:"users"`
+	TotalItems    int64           `json:"total"`
+	NumberOfPages int             `json:"pages"`
+	CurrentPage   int             `json:"currentPage"`
 }
 
 type UserResponse struct {

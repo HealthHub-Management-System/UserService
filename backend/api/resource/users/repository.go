@@ -3,6 +3,8 @@ package users
 import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+
+	"backend/utils/pagination"
 )
 
 type Repository struct {
@@ -15,13 +17,18 @@ func NewRepository(db *gorm.DB) *Repository {
 	}
 }
 
-func (r *Repository) List() (Users, error) {
-	users := make([]*User, 0)
-	if err := r.db.Find(&users).Error; err != nil {
-		return nil, err
+func (r *Repository) List(p pagination.Pagination) (*pagination.Pagination, error) {
+	var users Users
+
+	r.db.Scopes(pagination.Paginate(users, &p, r.db)).Find(&users)
+
+	if len(users) == 0 {
+		return nil, gorm.ErrRecordNotFound
 	}
 
-	return users, nil
+	p.Rows = users
+
+	return &p, nil
 }
 
 func (r *Repository) Create(user *User) (*User, error) {
