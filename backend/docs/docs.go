@@ -46,14 +46,25 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "List users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/users.ListResponse"
-                            }
+                            "$ref": "#/definitions/users.ListResponse"
                         }
                     },
                     "500": {
@@ -89,7 +100,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created"
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/users.UserResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -190,7 +204,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/users.UserResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -299,6 +316,15 @@ const docTemplate = `{
         "users.ListResponse": {
             "type": "object",
             "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "pages": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
                 "users": {
                     "type": "array",
                     "items": {

@@ -25,6 +25,12 @@ definitions:
     type: object
   users.ListResponse:
     properties:
+      currentPage:
+        type: integer
+      pages:
+        type: integer
+      total:
+        type: integer
       users:
         items:
           $ref: '#/definitions/users.UserResponse'
@@ -78,15 +84,22 @@ paths:
       consumes:
       - application/json
       description: List users
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/users.ListResponse'
-            type: array
+            $ref: '#/definitions/users.ListResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -110,6 +123,8 @@ paths:
       responses:
         "201":
           description: Created
+          schema:
+            $ref: '#/definitions/users.UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -205,6 +220,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/users.UserResponse'
         "400":
           description: Bad Request
           schema:
