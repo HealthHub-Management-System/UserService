@@ -15,6 +15,7 @@ require (
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/go-chi/chi v1.5.5
+	github.com/go-chi/cors v1.2.1
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/rs/zerolog v1.32.0
 	gorm.io/driver/postgres v1.5.7
