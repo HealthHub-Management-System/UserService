@@ -36,6 +36,7 @@ func TestGetUsers(t *testing.T) {
 		AddRow(id, "user1", "email@email.com", "patient").
 		AddRow(uuid.New(), "user2", "email2@email.com", "doctor")
 
+	mock.ExpectQuery("^SELECT count\\(\\*\\) FROM \"users\"").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
 	mock.ExpectQuery("^SELECT (.*) FROM \"users\"").WillReturnRows(mockRows)
 
 	rr := httptest.NewRecorder()
