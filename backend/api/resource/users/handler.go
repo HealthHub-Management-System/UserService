@@ -362,3 +362,31 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// Logout godoc
+//
+//	@summary		Login user
+//	@description	Login user
+//	@tags			users
+//	@accept			json
+//	@produce		json
+//	@param			body	body	Form	true	"Login form"
+//	@success		200
+//	@failure		401	{object}	error.Error
+//	@failure		422	{object}	error.Errors
+//	@failure		500	{object}	error.Error
+//	@router			/users/login [post]
+func (a *API) Logout(w http.ResponseWriter, r *http.Request) {
+	session, err := a.store.Get(r, "session")
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Logout user failed")
+	}
+
+	session.Values["user_id"] = nil
+	session.Options.MaxAge = -1
+
+	err = session.Save(r, w)
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Logout user failed")
+	}
+}

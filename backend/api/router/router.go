@@ -45,6 +45,7 @@ func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *sessions.Cook
 
 		usersAPI := users.New(l, db, v, s)
 		r.Post("/login", usersAPI.Login)
+		r.Post("/logout", usersAPI.Logout)
 		r.Get("/users", usersAPI.List)
 		r.Post("/users", usersAPI.Create)
 		r.Get("/users/{id}", usersAPI.Read)
