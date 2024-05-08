@@ -10,6 +10,7 @@ import (
 
 	"backend/api/resource/users"
 	mockDB "backend/utils/mock"
+	"backend/utils/pagination"
 	testUtil "backend/utils/test"
 )
 
@@ -25,11 +26,21 @@ func TestRepository_List(t *testing.T) {
 		AddRow(uuid.New(), "user1", "email1@email.com", "patient").
 		AddRow(uuid.New(), "user2", "email2@email.com", "patient")
 
+	mock.ExpectQuery("^SELECT count\\(\\*\\) FROM \"users\"").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
 	mock.ExpectQuery("^SELECT (.+) FROM \"users\"").WillReturnRows(mockRows)
 
-	users_list, err := repo.List()
+	pagination := &pagination.Pagination{
+		Page:  1,
+		Limit: 10,
+	}
+
+	result, err := repo.List(*pagination)
 	testUtil.NoError(t, err)
-	testUtil.Equal(t, len(users_list), 2)
+	testUtil.Equal(t, len(result.Rows.(users.Users)), 2)
+	testUtil.Equal(t, result.Page, 1)
+	testUtil.Equal(t, result.Limit, 10)
+	testUtil.Equal(t, result.TotalPages, 1)
+	testUtil.Equal(t, result.TotalRows, 2)
 }
 
 func TestRepository_Create(t *testing.T) {

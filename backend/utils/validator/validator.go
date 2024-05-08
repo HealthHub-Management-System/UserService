@@ -30,6 +30,8 @@ func New() *validator.Validate {
 	_ = validate.RegisterValidation("alpha_space", isAlphaSpace)
 	_ = validate.RegisterValidation("password", isPassword)
 	_ = validate.RegisterValidation("role", isRole)
+	_ = validate.RegisterValidation("page", greaterOrEqual0)
+	_ = validate.RegisterValidation("limit", greaterOrEqual0)
 
 	return validate
 }
@@ -56,6 +58,10 @@ func ToErrResponse(err error) *ErrResponse {
 				resp.Errors[i] = fmt.Sprintf("%s must be one of the following: patient, doctor, admin", err.Field())
 			case "required_without":
 				resp.Errors[i] = fmt.Sprintf("%s is required when another field is absent", err.Field())
+			case "page":
+				resp.Errors[i] = fmt.Sprintf("%s must be greater than 0", err.Field())
+			case "limit":
+				resp.Errors[i] = fmt.Sprintf("%s must be greater than 0", err.Field())
 			default:
 				resp.Errors[i] = fmt.Sprintf("something wrong on %s; %s", err.Field(), err.Tag())
 			}
@@ -94,4 +100,8 @@ func isRole(fl validator.FieldLevel) bool {
 	roles := []string{"patient", "doctor", "admin"}
 
 	return slices.Contains(roles, role)
+}
+
+func greaterOrEqual0(fl validator.FieldLevel) bool {
+	return fl.Field().Int() >= 0
 }
