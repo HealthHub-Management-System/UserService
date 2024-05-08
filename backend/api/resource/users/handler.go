@@ -3,6 +3,7 @@ package users
 import (
 	"encoding/json"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -308,6 +309,56 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
 		a.logger.Error().Err(err).Msg("Login user failed")
 		e.ServerError(w, e.RespJSONDecodeFailure)
+		return
+	}
+
+	if err := a.validator.Struct(form); err != nil {
+		a.logger.Error().Err(err).Msg("Login user failed")
+		respBody, err := json.Marshal(validatorUtil.ToErrResponse(err))
+		if err != nil {
+			e.ServerError(w, e.RespJSONEncodeFailure)
+			return
+		}
+
+		e.ValidationErrors(w, respBody)
+		return
+	}
+
+	user, err := a.repository.GetByEmail(form.Email)
+	if err != nil || user == nil {
+		a.logger.Error().Err(err).Msg("Login user failed")
+		if err == gorm.ErrRecordNotFound {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		e.ServerError(w, e.RespDBDataAccessFailure)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword(user.Password, []byte(form.Password))
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Login user failed")
+		respBody, err := json.Marshal(validatorUtil.ToErrResponse(err))
+		if err != nil {
+			e.ServerError(w, e.RespJSONEncodeFailure)
+			return
+		}
+
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = w.Write(respBody)
+		return
+	}
+
+	session, err := a.store.Get(r, "session")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	session.Values["user_id"] = user.ID
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

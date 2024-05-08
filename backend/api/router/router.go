@@ -2,8 +2,8 @@ package router
 
 import (
 	"github.com/go-chi/chi"
-	"github.com/gorilla/sessions"
 	"github.com/go-chi/cors"
+	"github.com/gorilla/sessions"
 	"gorm.io/gorm"
 
 	"github.com/go-playground/validator/v10"
@@ -44,6 +44,7 @@ func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *sessions.Cook
 		r.Use(loggerMiddleware)
 
 		usersAPI := users.New(l, db, v, s)
+		r.Post("/login", usersAPI.Login)
 		r.Get("/users", usersAPI.List)
 		r.Post("/users", usersAPI.Create)
 		r.Get("/users/{id}", usersAPI.Read)
