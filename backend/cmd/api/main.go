@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
+
+	"github.com/wader/gormstore/v2" // Add this import
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -31,7 +32,6 @@ func main() {
 	c := config.New()
 	l := logger.New(c.Server.Debug)
 	v := validatorUtil.New()
-	store := sessions.NewCookieStore([]byte("chuj"))
 
 	var logLevel gormlogger.LogLevel
 	if c.Database.Debug {
@@ -47,6 +47,7 @@ func main() {
 		return
 	}
 
+	store := gormstore.New(db, []byte("secret")) // temporary secret key
 	r := router.New(l, db, v, store)
 
 	s := &http.Server{

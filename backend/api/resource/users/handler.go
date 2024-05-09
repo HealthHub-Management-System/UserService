@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"github.com/gorilla/sessions"
 	"github.com/rs/zerolog"
+	"github.com/wader/gormstore/v2"
 	"gorm.io/gorm"
 
 	e "backend/api/resource/common/error"
@@ -25,10 +26,10 @@ type API struct {
 	repository *Repository
 	validator  *validator.Validate
 	logger     *zerolog.Logger
-	store      *sessions.CookieStore
+	store      *gormstore.Store
 }
 
-func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *sessions.CookieStore) *API {
+func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *gormstore.Store) *API {
 	return &API{
 		repository: NewRepository(db),
 		validator:  v,
@@ -307,9 +308,11 @@ func (a *API) Delete(w http.ResponseWriter, r *http.Request) {
 //	@router			/users/login [post]
 func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 	session, err := a.store.Get(r, "session")
-	if session.Values["username"] != nil {
-		a.logger.Error().Err(err).Msg("User already logged in!")
-		return
+	if value, ok := session.Values["email"].(string); ok && err == nil {
+		if len(value) != 0 {
+			a.logger.Error().Err(err).Msg("User already logged in!")
+			return
+		}
 	}
 
 	form := &LoginForm{}
@@ -354,7 +357,7 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	session.Values["user_email"] = user.Email
+	session.Values["email"] = user.Email
 	err = session.Save(r, w)
 	if err != nil {
 		a.logger.Error().Err(err).Msg("Login user failed")
@@ -382,7 +385,7 @@ func (a *API) Logout(w http.ResponseWriter, r *http.Request) {
 		a.logger.Error().Err(err).Msg("Logout user failed")
 	}
 
-	session.Values["user_id"] = nil
+	session.Values["email"] = nil
 	session.Options.MaxAge = -1
 
 	err = session.Save(r, w)

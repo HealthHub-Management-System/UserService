@@ -3,7 +3,7 @@ package router
 import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
-	"github.com/gorilla/sessions"
+	"github.com/wader/gormstore/v2"
 	"gorm.io/gorm"
 
 	"github.com/go-playground/validator/v10"
@@ -18,7 +18,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *sessions.CookieStore) *chi.Mux {
+func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *gormstore.Store) *chi.Mux {
 	r := chi.NewRouter()
 
 	loggerMiddleware := middleware.NewLogger(l)

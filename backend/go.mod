@@ -19,6 +19,7 @@ require (
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/gorilla/sessions v1.2.2
 	github.com/rs/zerolog v1.32.0
+	github.com/wader/gormstore/v2 v2.0.3
 	gorm.io/driver/postgres v1.5.7
 )
 
@@ -30,6 +31,7 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 )
 
