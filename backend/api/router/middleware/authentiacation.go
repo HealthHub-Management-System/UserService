@@ -10,7 +10,7 @@ func AdminOnly(store *gormstore.Store) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			session, err := store.Get(r, "session")
-			if value, ok := session.Values["role"].(users.Role); !(ok && err == nil && value == users.Admin) {
+			if value, ok := session.Values["role"].(string); !(ok && err == nil && value == users.Admin.ToString()) {
 				http.Error(w, "Admin needed!", http.StatusUnauthorized)
 				return
 			}

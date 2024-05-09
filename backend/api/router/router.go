@@ -56,6 +56,7 @@ func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *gormstore.Sto
 			r.Put("/users/{id}", usersAPI.Update)
 			r.Post("/users/logout", usersAPI.Logout)
 		})
+
 		r.Post("/users", usersAPI.Create)
 		r.Post("/users/login", usersAPI.Login)
 	})

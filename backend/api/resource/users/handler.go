@@ -122,6 +122,15 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if form.Role == Doctor {
+		session, err := a.store.Get(r, "session")
+		if value, ok := session.Values["role"].(string); !(ok && err == nil && value == Admin.ToString()) {
+			a.logger.Error().Err(err).Msg("Not admin tried to add doctor")
+			http.Error(w, "Doctor can only be added by admin!", http.StatusUnauthorized)
+			return
+		}
+	}
+
 	newUser := form.ToModel()
 	newUser.ID = GetUUID()
 
