@@ -353,11 +353,8 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 	session.Values["email"] = user.Email
+	session.Values["role"] = user.Role.ToString()
 	err = session.Save(r, w)
 	if err != nil {
 		a.logger.Error().Err(err).Msg("Login user failed")
@@ -386,6 +383,7 @@ func (a *API) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Values["email"] = nil
+	session.Values["role"] = nil
 	session.Options.MaxAge = -1
 
 	err = session.Save(r, w)
