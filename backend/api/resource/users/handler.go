@@ -2,6 +2,7 @@ package users
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -327,7 +328,7 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 	user, err := a.repository.GetByEmail(form.Email)
 	if err != nil || user == nil {
 		a.logger.Error().Err(err).Msg("Login user failed")
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
@@ -339,14 +340,7 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 	err = bcrypt.CompareHashAndPassword(user.Password, []byte(form.Password))
 	if err != nil {
 		a.logger.Error().Err(err).Msg("Login user failed")
-		respBody, err := json.Marshal(validatorUtil.ToErrResponse(err))
-		if err != nil {
-			e.ServerError(w, e.RespJSONEncodeFailure)
-			return
-		}
-
-		w.WriteHeader(http.StatusUnauthorized)
-		_, _ = w.Write(respBody)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -355,9 +349,10 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	session.Values["user_id"] = user.ID
+	session.Values["user_email"] = user.Email
 	err = session.Save(r, w)
 	if err != nil {
+		a.logger.Error().Err(err).Msg("Login user failed")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -375,7 +370,7 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 //	@failure		401	{object}	error.Error
 //	@failure		422	{object}	error.Errors
 //	@failure		500	{object}	error.Error
-//	@router			/users/login [post]
+//	@router			/users/logout [post]
 func (a *API) Logout(w http.ResponseWriter, r *http.Request) {
 	session, err := a.store.Get(r, "session")
 	if err != nil {

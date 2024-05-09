@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gorilla/sessions"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -230,6 +231,40 @@ func TestDeleteUser(t *testing.T) {
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("id", idString)
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+	handler.ServeHTTP(rr, req)
+	status := rr.Code
+	testUtil.Equal(t, status, http.StatusOK)
+}
+
+func TestLogin(t *testing.T) {
+	l := logger.New(false)
+	v := validatorUtil.New()
+	db, mock, err := mockDB.NewMockDB()
+	testUtil.NoError(t, err)
+	s := sessions.NewCookieStore([]byte("key"))
+
+	usersAPI := users.New(l, db, v, s)
+
+	password := "Password@123"
+	pass, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	email := "email@email.com"
+	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "password", "role"}).
+		AddRow(uuid.New(), "user1", email, pass, "patient")
+	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
+		WithArgs(email, 1).
+		WillReturnRows(mockRows)
+	mock.ExpectCommit()
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(usersAPI.Login)
+
+	user := &users.LoginForm{Email: email, Password: password}
+	body, _ := json.Marshal(user)
+	req, err := http.NewRequest("POST", "/api/v1/login", bytes.NewReader(body))
+	if err != nil {
+		t.Errorf("Error creating a new request: %v", err)
+	}
 
 	handler.ServeHTTP(rr, req)
 	status := rr.Code

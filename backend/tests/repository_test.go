@@ -132,3 +132,24 @@ func TestRepository_Delete(t *testing.T) {
 	testUtil.NoError(t, err)
 	testUtil.Equal(t, 1, rows)
 }
+
+func TestRepository_GetByEmail(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := mockDB.NewMockDB()
+	testUtil.NoError(t, err)
+
+	repo := users.NewRepository(db)
+
+	email := "email@email.com"
+	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
+		AddRow(uuid.New(), "user1", email, "patient")
+
+	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
+		WithArgs(email, 1).
+		WillReturnRows(mockRows)
+
+	user, err := repo.GetByEmail(email)
+	testUtil.NoError(t, err)
+	testUtil.Equal(t, "user1", user.Name)
+}
