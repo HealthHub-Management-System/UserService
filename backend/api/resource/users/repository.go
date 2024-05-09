@@ -48,6 +48,15 @@ func (r *Repository) Read(id uuid.UUID) (*User, error) {
 	return user, nil
 }
 
+func (r *Repository) GetByEmail(email string) (*User, error) {
+	user := &User{}
+	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *Repository) Update(user *User) (int64, error) {
 	result := r.db.Model(&User{}).
 		Select("name", "email").

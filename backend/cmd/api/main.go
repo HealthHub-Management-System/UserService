@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/wader/gormstore/v2" // Add this import
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
@@ -45,7 +47,8 @@ func main() {
 		return
 	}
 
-	r := router.New(l, db, v)
+	store := gormstore.New(db, []byte("secret")) // temporary secret key
+	r := router.New(l, db, v, store)
 
 	s := &http.Server{
 		Addr:         fmt.Sprintf(":%d", c.Server.Port),

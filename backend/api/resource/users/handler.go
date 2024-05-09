@@ -2,13 +2,17 @@ package users
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
+	"github.com/wader/gormstore/v2"
 	"gorm.io/gorm"
 
 	e "backend/api/resource/common/error"
@@ -22,13 +26,15 @@ type API struct {
 	repository *Repository
 	validator  *validator.Validate
 	logger     *zerolog.Logger
+	store      *gormstore.Store
 }
 
-func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate) *API {
+func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *gormstore.Store) *API {
 	return &API{
 		repository: NewRepository(db),
 		validator:  v,
 		logger:     l,
+		store:      s,
 	}
 }
 
@@ -284,5 +290,106 @@ func (a *API) Delete(w http.ResponseWriter, r *http.Request) {
 	if rows == 0 {
 		e.NotFound(w)
 		return
+	}
+}
+
+// Login godoc
+//
+//	@summary		Login user
+//	@description	Login user
+//	@tags			users
+//	@accept			json
+//	@produce		json
+//	@param			body	body	Form	true	"Login form"
+//	@success		200
+//	@failure		401	{object}	error.Error
+//	@failure		422	{object}	error.Errors
+//	@failure		500	{object}	error.Error
+//	@router			/users/login [post]
+func (a *API) Login(w http.ResponseWriter, r *http.Request) {
+	session, err := a.store.Get(r, "session")
+	if value, ok := session.Values["email"].(string); ok && err == nil {
+		if len(value) != 0 {
+			a.logger.Error().Err(err).Msg("User already logged in!")
+			return
+		}
+	}
+
+	form := &LoginForm{}
+	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
+		a.logger.Error().Err(err).Msg("Login user failed")
+		e.ServerError(w, e.RespJSONDecodeFailure)
+		return
+	}
+
+	if err := a.validator.Struct(form); err != nil {
+		a.logger.Error().Err(err).Msg("Login user failed")
+		respBody, err := json.Marshal(validatorUtil.ToErrResponse(err))
+		if err != nil {
+			e.ServerError(w, e.RespJSONEncodeFailure)
+			return
+		}
+
+		e.ValidationErrors(w, respBody)
+		return
+	}
+
+	user, err := a.repository.GetByEmail(form.Email)
+	if err != nil || user == nil {
+		a.logger.Error().Err(err).Msg("Login user failed")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		e.ServerError(w, e.RespDBDataAccessFailure)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword(user.Password, []byte(form.Password))
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Login user failed")
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	session.Values["email"] = user.Email
+	err = session.Save(r, w)
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Login user failed")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// Logout godoc
+//
+//	@summary		Login user
+//	@description	Login user
+//	@tags			users
+//	@accept			json
+//	@produce		json
+//	@param			body	body	Form	true	"Login form"
+//	@success		200
+//	@failure		401	{object}	error.Error
+//	@failure		422	{object}	error.Errors
+//	@failure		500	{object}	error.Error
+//	@router			/users/logout [post]
+func (a *API) Logout(w http.ResponseWriter, r *http.Request) {
+	session, err := a.store.Get(r, "session")
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Logout user failed")
+	}
+
+	session.Values["email"] = nil
+	session.Options.MaxAge = -1
+
+	err = session.Save(r, w)
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Logout user failed")
 	}
 }

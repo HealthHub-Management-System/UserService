@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
+	"github.com/wader/gormstore/v2"
 	"gorm.io/gorm"
 
 	"github.com/go-playground/validator/v10"
@@ -17,7 +18,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate) *chi.Mux {
+func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *gormstore.Store) *chi.Mux {
 	r := chi.NewRouter()
 
 	loggerMiddleware := middleware.NewLogger(l)
@@ -42,12 +43,14 @@ func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate) *chi.Mux {
 		r.Use(middleware.ContentTypeJSON)
 		r.Use(loggerMiddleware)
 
-		usersAPI := users.New(l, db, v)
+		usersAPI := users.New(l, db, v, s)
 		r.Get("/users", usersAPI.List)
 		r.Post("/users", usersAPI.Create)
 		r.Get("/users/{id}", usersAPI.Read)
 		r.Put("/users/{id}", usersAPI.Update)
 		r.Delete("/users/{id}", usersAPI.Delete)
+		r.Post("/users/login", usersAPI.Login)
+		r.Post("/users/logout", usersAPI.Logout)
 	})
 
 	return r

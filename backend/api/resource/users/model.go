@@ -59,6 +59,11 @@ type UpdateForm struct {
 	Email string `json:"email" form:"required_without=Name,email,max=255"`
 }
 
+type LoginForm struct {
+	Email    string `json:"email" form:"email,max=255"`
+	Password string `json:"password" form:"required,password,max=255"`
+}
+
 type User struct {
 	ID       uuid.UUID `gorm:"primarykey"`
 	Name     string
