@@ -9,16 +9,25 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/gorilla/sessions"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/wader/gormstore/v2"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 )
+
+func mockGormStoreRequests(mock sqlmock.Sqlmock) {
+	mock.ExpectQuery("SELECT count\\(\\*\\) FROM (.*)").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery("SELECT CURRENT_DATABASE\\(\\)").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	expectedRows := sqlmock.NewRows([]string{"column_name", "is_nullable", "udt_name", "character_maximum_length", "numeric_precision", "numeric_precision_radix", "numeric_scale", "datetime_precision", "typlen", "column_default", "description", "identity_increment"}).
+		AddRow("value1", "value2", "value3", 10, 5, 2, 1, 6, 16, "default_value", "description_value", 1)
+	mock.ExpectQuery("SELECT (.*) FROM (.*)").WithArgs("1", "sessions").WillReturnRows(expectedRows)
+}
 
 func TestGetUsers(t *testing.T) {
 	req, err := http.NewRequest("GET", "/api/v1/users", nil)
@@ -31,7 +40,9 @@ func TestGetUsers(t *testing.T) {
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
-	s := sessions.NewCookieStore([]byte("key"))
+
+	mockGormStoreRequests(mock)
+	s := gormstore.New(db, []byte("secret"))
 
 	usersAPI := users.New(l, db, v, s)
 	id := uuid.New()
@@ -66,7 +77,9 @@ func TestAddUser(t *testing.T) {
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
-	s := sessions.NewCookieStore([]byte("key"))
+
+	mockGormStoreRequests(mock)
+	s := gormstore.New(db, []byte("secret"))
 
 	usersAPI := users.New(l, db, v, s)
 	old := users.GetUUID
@@ -124,7 +137,9 @@ func TestGetUser(t *testing.T) {
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
-	s := sessions.NewCookieStore([]byte("key"))
+
+	mockGormStoreRequests(mock)
+	s := gormstore.New(db, []byte("secret"))
 
 	id, err := uuid.Parse(idString)
 	testUtil.NoError(t, err)
@@ -160,7 +175,9 @@ func TestUpdateUser(t *testing.T) {
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
-	s := sessions.NewCookieStore([]byte("key"))
+
+	mockGormStoreRequests(mock)
+	s := gormstore.New(db, []byte("secret"))
 
 	usersAPI := users.New(l, db, v, s)
 
@@ -207,7 +224,9 @@ func TestDeleteUser(t *testing.T) {
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
-	s := sessions.NewCookieStore([]byte("key"))
+
+	mockGormStoreRequests(mock)
+	s := gormstore.New(db, []byte("secret"))
 
 	usersAPI := users.New(l, db, v, s)
 
@@ -242,18 +261,25 @@ func TestLogin(t *testing.T) {
 	v := validatorUtil.New()
 	db, mock, err := mockDB.NewMockDB()
 	testUtil.NoError(t, err)
-	s := sessions.NewCookieStore([]byte("key"))
+
+	mockGormStoreRequests(mock)
+	s := gormstore.New(db, []byte("secret"))
 
 	usersAPI := users.New(l, db, v, s)
 
 	password := "Password@123"
 	pass, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	email := "email@email.com"
+
 	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "password", "role"}).
 		AddRow(uuid.New(), "user1", email, pass, "patient")
+
 	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
 		WithArgs(email, 1).
 		WillReturnRows(mockRows)
+
+	mock.ExpectBegin()
+	mock.ExpectExec("^INSERT INTO \"sessions\"").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	rr := httptest.NewRecorder()
@@ -261,7 +287,48 @@ func TestLogin(t *testing.T) {
 
 	user := &users.LoginForm{Email: email, Password: password}
 	body, _ := json.Marshal(user)
-	req, err := http.NewRequest("POST", "/api/v1/login", bytes.NewReader(body))
+	req, err := http.NewRequest("POST", "/api/v1/users/login", bytes.NewReader(body))
+	if err != nil {
+		t.Errorf("Error creating a new request: %v", err)
+	}
+
+	handler.ServeHTTP(rr, req)
+	status := rr.Code
+	testUtil.Equal(t, status, http.StatusOK)
+}
+
+func TestLogout(t *testing.T) {
+	l := logger.New(false)
+	v := validatorUtil.New()
+	db, mock, err := mockDB.NewMockDB()
+	testUtil.NoError(t, err)
+
+	mockGormStoreRequests(mock)
+	s := gormstore.New(db, []byte("secret"))
+
+	usersAPI := users.New(l, db, v, s)
+
+	password := "Password@123"
+	pass, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	email := "email@email.com"
+
+	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "password", "role"}).
+		AddRow(uuid.New(), "user1", email, pass, "patient")
+
+	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
+		WithArgs(email, 1).
+		WillReturnRows(mockRows)
+
+	mock.ExpectBegin()
+	mock.ExpectExec("^INSERT INTO \"sessions\"").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(usersAPI.Login)
+
+	user := &users.LoginForm{Email: email, Password: password}
+	body, _ := json.Marshal(user)
+	req, err := http.NewRequest("POST", "/api/v1/users/logout", bytes.NewReader(body))
 	if err != nil {
 		t.Errorf("Error creating a new request: %v", err)
 	}
