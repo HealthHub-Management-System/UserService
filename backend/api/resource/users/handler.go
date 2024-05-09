@@ -306,6 +306,12 @@ func (a *API) Delete(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	error.Error
 //	@router			/users/login [post]
 func (a *API) Login(w http.ResponseWriter, r *http.Request) {
+	session, err := a.store.Get(r, "session")
+	if session.Values["username"] != nil {
+		a.logger.Error().Err(err).Msg("User already logged in!")
+		return
+	}
+
 	form := &LoginForm{}
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
 		a.logger.Error().Err(err).Msg("Login user failed")
@@ -344,7 +350,6 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := a.store.Get(r, "session")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
