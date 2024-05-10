@@ -137,12 +137,23 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	user, err1 := a.repository.GetByEmail(form.Email)
+	if err1 != nil && !errors.Is(err1, gorm.ErrRecordNotFound) {
+		a.logger.Error().Err(err1).Msg("Create user failed")
+		e.ServerError(w, e.RespDBDataAccessFailure)
+		return
+	} else if user != nil {
+		a.logger.Error().Msg("User already exists")
+		http.Error(w, "User already exists!", http.StatusConflict)
+		return
+	}
+
 	newUser := form.ToModel()
 	newUser.ID = GetUUID()
 
-	_, err := a.repository.Create(newUser)
-	if err != nil {
-		a.logger.Error().Err(err).Msg("Create user failed")
+	_, err2 := a.repository.Create(newUser)
+	if err2 != nil {
+		a.logger.Error().Err(err2).Msg("Create user failed")
 		e.ServerError(w, e.RespDBDataInsertFailure)
 		return
 	}
