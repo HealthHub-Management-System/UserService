@@ -17,15 +17,21 @@ export class RegisterPageComponent {
   };
   repeatedpassword: string = '';
   formSubmitted = false;
+  showMessage: boolean = false;
+  isSuccess: boolean = false;
 
   constructor(private router: Router, private appService: AppService) {}
 
   submitForm(userForm: NgForm) {
     if (userForm.valid) {
-      this.appService.addUser(this.user);
+      this.appService.addUserRegistration(this.user);
+      console.log('Registry User:', this.user);
+      window.alert('Pomyślna rejestracja!');
       userForm.resetForm();
       this.user = { name: '', email: '', role: 'patient', password: '' };
       this.router.navigate(['/login']);
+    } else {
+      window.alert('Rejestracja nie powiodła się!');
     }
   }
 }

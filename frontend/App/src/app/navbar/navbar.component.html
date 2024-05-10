@@ -1,6 +1,7 @@
 <div class="container">
-  <h1 class="navbar-brand">HealthHub - Management System</h1>
-
+  <h1 class="navbar-brand" routerLink="/home" style="cursor: pointer">
+    HealthHub - Management System
+  </h1>
   <div class="navbar-user" (click)="toggleMenu()">
     <span class="navbar-text">Witaj, {{ username }}</span>
     <a routerLink="/user" routerLinkActive="active">

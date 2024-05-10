@@ -38,7 +38,9 @@ export class AppService {
   async getUsers(): Promise<User[]> {
     try {
       const response = await lastValueFrom(
-        this.http.get<{ users: User[] }>(this.apiUrl, { withCredentials: true })
+        this.http.get<{ users: User[] }>(`${this.apiUrl}?limit=100`, {
+          withCredentials: true,
+        })
       );
       const users = response.users;
       return users;
@@ -67,6 +69,7 @@ export class AppService {
     this.http.post<any>(this.apiUrl, user).subscribe(
       (response: any) => {
         console.log(response);
+        console.log('Registry User-service:', user);
       },
       (error) => {
         console.log(error);
