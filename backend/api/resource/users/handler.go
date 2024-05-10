@@ -376,6 +376,13 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	response := user.ToResponse()
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		a.logger.Error().Err(err).Msg("Update user failed")
+		e.ServerError(w, e.RespJSONEncodeFailure)
+		return
+	}
 }
 
 // Logout godoc
