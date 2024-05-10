@@ -1,0 +1,16 @@
+<div class="container">
+  <h1 class="navbar-brand">HealthHub - Management System</h1>
+
+  <div class="navbar-user" (click)="toggleMenu()">
+    <span class="navbar-text">Witaj, {{ username }}</span>
+    <a routerLink="/user" routerLinkActive="active">
+      <img src="assets/user.png" alt="User" />
+    </a>
+    <ul class="user-menu" *ngIf="isMenuOpen">
+      <li routerLink="/profile" routerLinkActive="active"><a>Profil</a></li>
+      <li routerLink="" routerLinkActive="active" (click)="logout()">
+        <a>Wyloguj</a>
+      </li>
+    </ul>
+  </div>
+</div>

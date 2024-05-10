@@ -1,0 +1,117 @@
+<app-navbar></app-navbar>
+<div class="container">
+  <h2>Dodaj użytkownika</h2>
+  <form id="addUserForm" #userForm="ngForm" (ngSubmit)="submitForm(userForm)">
+    <div class="form-group">
+      <label for="name">Nazwa użytkownika:</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        [(ngModel)]="user.name"
+        required
+      />
+      <div
+        *ngIf="
+          userForm.controls['name'].invalid && userForm.controls['name'].touched
+        "
+        class="error-message"
+      >
+        Nazwa użytkownika jest wymagana.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        [(ngModel)]="user.email"
+        required
+        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+      />
+      <div
+        *ngIf="
+          userForm.controls['email'].invalid &&
+          userForm.controls['email'].touched
+        "
+        class="error-message"
+      >
+        Wprowadź poprawny adres e-mail.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="role">Rola:</label>
+      <select id="role" name="role" [(ngModel)]="user.role" required>
+        <option value="">Wybierz rolę</option>
+        <option value="patient">Pacjent</option>
+        <option value="doctor">Lekarz</option>
+        <!-- <option value="admin">Administrator</option> -->
+      </select>
+      <div
+        *ngIf="
+          userForm.controls['role'].invalid && userForm.controls['role'].touched
+        "
+        class="error-message"
+      >
+        Wybierz rolę użytkownika.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Hasło:</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        [(ngModel)]="user.password"
+        required
+        minlength="9"
+        pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{9,}"
+      />
+      <div
+        *ngIf="
+          userForm.controls['password'].invalid &&
+          userForm.controls['password'].touched
+        "
+        class="error-message"
+      >
+        Hasło musi mieć co najmniej 9 znaków i zawierać przynajmniej jedną małą
+        literę, jedną dużą literę, jedną cyfrę i jeden znak specjalny.
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="repeatedpassword">Powtórz hasło:</label>
+      <input
+        type="password"
+        id="repeatedpassword"
+        name="repeatedpassword"
+        [(ngModel)]="repeatedpassword"
+        required
+      />
+      <div
+        *ngIf="
+          userForm.controls['repeatedpassword'].invalid &&
+          userForm.controls['repeatedpassword'].touched
+        "
+        class="error-message"
+      >
+        Powtórzone hasło jest wymagane.
+      </div>
+      <div
+        *ngIf="
+          user.password !== repeatedpassword &&
+          userForm.controls['repeatedpassword'].touched
+        "
+        class="error-message"
+      >
+        Hasła nie pasują do siebie.
+      </div>
+    </div>
+
+    <button type="submit">Dodaj użytkownika</button>
+  </form>
+</div>

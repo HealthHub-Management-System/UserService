@@ -1,0 +1,58 @@
+<app-navbar></app-navbar>
+<router-outlet></router-outlet>
+
+<div class="icon-row">
+  <a routerLink="/payment" routerLinkActive="active" class="icon-link">
+    <img src="assets/payment.png" alt="Payment System" class="icon" />
+  </a>
+
+  <a
+    routerLink="/medicaldocumentation"
+    routerLinkActive="active"
+    class="icon-link"
+  >
+    <img
+      src="assets/medicaldocumentation.png"
+      alt="Medical Documentation System"
+      class="icon"
+    />
+  </a>
+
+  <a routerLink="/appointment" routerLinkActive="active" class="icon-link">
+    <img src="assets/appointment.png" alt="Appointment System" class="icon" />
+  </a>
+</div>
+
+<div class="icon-row">
+  <a routerLink="/opinion" routerLinkActive="active" class="icon-link">
+    <img src="assets/opinion.png" alt="Opinion System" class="icon" />
+  </a>
+
+  <a
+    routerLink="/otherfunctionalities"
+    routerLinkActive="active"
+    class="icon-link"
+  >
+    <img
+      src="assets/otherfunctionalities.png"
+      alt="Other Functionalities System"
+      class="icon"
+    />
+  </a>
+</div>
+
+<div class="icon-row">
+  <ng-container *ngIf="user.role === 'admin'">
+    <a
+      routerLink="/usersmanagement"
+      routerLinkActive="active"
+      class="icon-link"
+    >
+      <img
+        src="assets/usersmanagement.png"
+        alt="Users Management"
+        class="icon"
+      />
+    </a>
+  </ng-container>
+</div>

@@ -1,0 +1,45 @@
+<app-navbar></app-navbar>
+<div class="container">
+  <h2>Mój profil</h2>
+  <form id="addUserForm" #userForm="ngForm" (ngSubmit)="submitForm(userForm)">
+    <div class="form-group">
+      <label for="name">Nazwa użytkownika:</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        [(ngModel)]="user.name"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        [(ngModel)]="user.email"
+        required
+      />
+    </div>
+
+    <!-- <div class="form-group">
+      <label for="password">Hasło:</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        [(ngModel)]="user.password"
+        required
+      />
+    </div> -->
+
+    <!-- <button type="submit" id="addUserBtn" [disabled]="userForm.invalid">
+      Dodaj użytkownika
+    </button> -->
+    <button type="submit" (click)="confirmUpdateUser()">
+      Zaktualizuj Dane
+    </button>
+  </form>
+</div>
