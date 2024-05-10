@@ -274,9 +274,10 @@ func TestLogin(t *testing.T) {
 	password := "Password@123"
 	pass, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	email := "email@email.com"
+	id := uuid.New()
 
 	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "password", "role"}).
-		AddRow(uuid.New(), "user1", email, pass, "patient")
+		AddRow(id, "user1", email, pass, "patient")
 
 	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
 		WithArgs(email, 1).
@@ -298,7 +299,14 @@ func TestLogin(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 	status := rr.Code
+	returnedUser := &users.UserResponse{}
+	err = json.NewDecoder(rr.Body).Decode(returnedUser)
 	testUtil.Equal(t, status, http.StatusOK)
+	testUtil.NoError(t, err)
+	testUtil.Equal(t, returnedUser.Name, "user1")
+	testUtil.Equal(t, returnedUser.Email, email)
+	testUtil.Equal(t, returnedUser.ID, id)
+	testUtil.Equal(t, returnedUser.Role, "patient")
 }
 
 func TestLogout(t *testing.T) {
