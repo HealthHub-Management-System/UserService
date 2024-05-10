@@ -45,6 +45,7 @@ export class ProfilePageComponent {
   confirmUpdateUser(): void {
     const confirmation = confirm('Czy na pewno chcesz zmienić dane?');
     this.appService.updateUser(this.user.email, this.user.name);
+    this.router.navigateByUrl('/home');
   }
 
   checkIfLoggedIn(): boolean {

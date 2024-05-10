@@ -1,5 +1,5 @@
 <div class="container">
-  <h2>Dodaj użytkownika</h2>
+  <h2>Zarejestruj się</h2>
   <form id="addUserForm" #userForm="ngForm" (ngSubmit)="submitForm(userForm)">
     <div class="form-group">
       <label for="name">Nazwa użytkownika:</label>
@@ -93,6 +93,6 @@
       </div>
     </div>
 
-    <button type="submit">Dodaj użytkownika</button>
+    <button type="submit" (click)="submitForm(userForm)">Zarejestruj</button>
   </form>
 </div>
