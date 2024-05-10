@@ -122,6 +122,21 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if form.Role == Admin {
+		a.logger.Error().Msg("Not allowed to create admin")
+		http.Error(w, "Cannot create admin from the level of API!", http.StatusUnauthorized)
+		return
+	}
+
+	if form.Role == Doctor {
+		session, err := a.store.Get(r, "session")
+		if value, ok := session.Values["role"].(string); !(ok && err == nil && value == Admin.ToString()) {
+			a.logger.Error().Err(err).Msg("Not admin tried to add doctor")
+			http.Error(w, "Doctor can only be added by admin!", http.StatusUnauthorized)
+			return
+		}
+	}
+
 	newUser := form.ToModel()
 	newUser.ID = GetUUID()
 
@@ -353,11 +368,8 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 	session.Values["email"] = user.Email
+	session.Values["role"] = user.Role.ToString()
 	err = session.Save(r, w)
 	if err != nil {
 		a.logger.Error().Err(err).Msg("Login user failed")
@@ -386,6 +398,7 @@ func (a *API) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Values["email"] = nil
+	session.Values["role"] = nil
 	session.Options.MaxAge = -1
 
 	err = session.Save(r, w)

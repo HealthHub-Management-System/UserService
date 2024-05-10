@@ -44,13 +44,21 @@ func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *gormstore.Sto
 		r.Use(loggerMiddleware)
 
 		usersAPI := users.New(l, db, v, s)
-		r.Get("/users", usersAPI.List)
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AdminOnly(s))
+			r.Get("/users", usersAPI.List)
+			r.Delete("/users/{id}", usersAPI.Delete)
+		})
+
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.LoggedOnly(s))
+			r.Get("/users/{id}", usersAPI.Read)
+			r.Put("/users/{id}", usersAPI.Update)
+			r.Post("/users/logout", usersAPI.Logout)
+		})
+
 		r.Post("/users", usersAPI.Create)
-		r.Get("/users/{id}", usersAPI.Read)
-		r.Put("/users/{id}", usersAPI.Update)
-		r.Delete("/users/{id}", usersAPI.Delete)
 		r.Post("/users/login", usersAPI.Login)
-		r.Post("/users/logout", usersAPI.Logout)
 	})
 
 	return r
