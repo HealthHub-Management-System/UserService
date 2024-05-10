@@ -122,6 +122,12 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if form.Role == Admin {
+		a.logger.Error().Msg("Not allowed to create admin")
+		http.Error(w, "Cannot create admin from the level of API!", http.StatusUnauthorized)
+		return
+	}
+
 	if form.Role == Doctor {
 		session, err := a.store.Get(r, "session")
 		if value, ok := session.Values["role"].(string); !(ok && err == nil && value == Admin.ToString()) {
