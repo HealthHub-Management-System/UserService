@@ -99,6 +99,10 @@ func TestAddUser(t *testing.T) {
 		return hash, nil
 	}
 
+	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
+		WithArgs("email@email.com", 1).
+		WillReturnRows(&sqlmock.Rows{})
+
 	password, _ := users.GenerateHash([]byte("password"))
 	mock.ExpectBegin()
 	mock.ExpectExec("^INSERT INTO \"users\" ").
