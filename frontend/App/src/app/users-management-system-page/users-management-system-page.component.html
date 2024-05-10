@@ -1,0 +1,37 @@
+<app-navbar></app-navbar>
+
+<div class="container">
+  <h1>Zarządzaj użytkownikami</h1>
+  <div>
+    <button routerLink="/addUser" id="addUserBtn">Dodaj użytkownika</button>
+    <input
+      type="text"
+      id="search"
+      placeholder="Wyszukaj użytkownika..."
+      [(ngModel)]="searchTerm"
+      (keyup.enter)="applySearchFilter()"
+    />
+  </div>
+  <div>
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Nazwa użytkownika</th>
+          <th>Email</th>
+          <th>Rola</th>
+          <th>Akcje</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers">
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
+          <td>
+            <button (click)="confirmDeleteUser(user.id)">Usuń</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

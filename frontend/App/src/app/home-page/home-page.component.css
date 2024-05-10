@@ -1,0 +1,28 @@
+.icon-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.icon-link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  border: 5px solid #007bff;
+  margin: 20px;
+  transition: transform 0.3s;
+}
+
+.icon-link:hover {
+  transform: scale(1.1);
+}
+
+.icon {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+}

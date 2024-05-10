@@ -1,0 +1,15 @@
+<h1 *ngIf="!routerOutletActivated">Witaj w HealthHub - Management System</h1>
+<a *ngIf="!routerOutletActivated" routerLink="/login" routerLinkActive="active"
+  >Zaloguj</a
+>
+<br />
+<a
+  *ngIf="!routerOutletActivated"
+  routerLink="/register"
+  routerLinkActive="active"
+  >Zarejestruj</a
+>
+<router-outlet
+  (activate)="routerOutletActivated = true"
+  (deactivate)="routerOutletActivated = false"
+></router-outlet>
