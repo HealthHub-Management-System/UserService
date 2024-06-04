@@ -15,6 +15,8 @@ var (
 	RespJSONDecodeFailure = []byte(`{"error": "json decode failure"}`)
 
 	RespInvalidURLParamID = []byte(`{"error": "invalid url param-id"}`)
+
+	RespSessionAccessFailure = []byte(`{"error": "session access failure"}`)
 )
 
 type Error struct {

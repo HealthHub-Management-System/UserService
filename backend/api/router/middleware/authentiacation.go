@@ -2,8 +2,9 @@ package middleware
 
 import (
 	"backend/api/resource/users"
-	"github.com/wader/gormstore/v2"
 	"net/http"
+
+	"github.com/wader/gormstore/v2"
 )
 
 func AdminOnly(store *gormstore.Store) func(http.Handler) http.Handler {
