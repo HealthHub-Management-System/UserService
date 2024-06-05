@@ -18,7 +18,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *gormstore.Store) *chi.Mux {
+func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *gormstore.Store, apiKey string) *chi.Mux {
 	r := chi.NewRouter()
 
 	loggerMiddleware := middleware.NewLogger(l)
@@ -43,15 +43,15 @@ func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *gormstore.Sto
 		r.Use(middleware.ContentTypeJSON)
 		r.Use(loggerMiddleware)
 
-		usersAPI := users.New(l, db, v, s)
+		usersAPI := users.New(l, db, v, s, apiKey)
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.AdminOnly(s))
+			r.Use(middleware.AdminOnly(s, apiKey))
 			r.Get("/users", usersAPI.List)
 			r.Delete("/users/{id}", usersAPI.Delete)
 		})
 
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.LoggedOnly(s))
+			r.Use(middleware.LoggedOnly(s, apiKey))
 			r.Get("/users/current", usersAPI.Current)
 			r.Get("/users/{id}", usersAPI.Read)
 			r.Put("/users/{id}", usersAPI.Update)

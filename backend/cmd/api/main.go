@@ -52,8 +52,8 @@ func main() {
 		return
 	}
 
-	store := gormstore.New(db, []byte("secret")) // temporary secret key
-	r := router.New(l, db, v, store)
+	store := gormstore.New(db, []byte(c.Server.Secret)) // temporary secret key
+	r := router.New(l, db, v, store, c.Server.APIKey)
 
 	s := &http.Server{
 		Addr:         fmt.Sprintf(":%d", c.Server.Port),

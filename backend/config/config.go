@@ -19,6 +19,8 @@ type ConfServer struct {
 	TimeoutWrite time.Duration `env:"SERVER_TIMEOUT_WRITE,required"`
 	TimeoutIdle  time.Duration `env:"SERVER_TIMEOUT_IDLE,required"`
 	Debug        bool          `env:"SERVER_DEBUG,required"`
+	APIKey       string        `env:"SERVER_API_KEY,required"`
+	Secret       string        `env:"SERVER_SECRET,required"`
 }
 
 type ConfDatabase struct {
