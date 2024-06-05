@@ -44,7 +44,7 @@ func TestGetUsers(t *testing.T) {
 	mockGormStoreRequests(mock)
 	s := gormstore.New(db, []byte("secret"))
 
-	usersAPI := users.New(l, db, v, s)
+	usersAPI := users.New(l, db, v, s, "APIKey")
 	id := uuid.New()
 	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
 		AddRow(id, "user1", "email@email.com", "patient").
@@ -81,7 +81,7 @@ func TestAddUser(t *testing.T) {
 	mockGormStoreRequests(mock)
 	s := gormstore.New(db, []byte("secret"))
 
-	usersAPI := users.New(l, db, v, s)
+	usersAPI := users.New(l, db, v, s, "APIKey")
 	old := users.GetUUID
 	defer func() { users.GetUUID = old }()
 	users.GetUUID = func() uuid.UUID {
@@ -145,7 +145,7 @@ func TestCurrentUser(t *testing.T) {
 
 	id, err := uuid.Parse(idString)
 	testUtil.NoError(t, err)
-	usersAPI := users.New(l, db, v, s)
+	usersAPI := users.New(l, db, v, s, "APIKey")
 	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
 		AddRow(id, "user1", "email@email.com", "admin")
 
@@ -192,7 +192,7 @@ func TestGetUser(t *testing.T) {
 
 	id, err := uuid.Parse(idString)
 	testUtil.NoError(t, err)
-	usersAPI := users.New(l, db, v, s)
+	usersAPI := users.New(l, db, v, s, "APIKey")
 	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
 		AddRow(id, "user1", "email@email.com", "admin")
 
@@ -228,7 +228,7 @@ func TestUpdateUser(t *testing.T) {
 	mockGormStoreRequests(mock)
 	s := gormstore.New(db, []byte("secret"))
 
-	usersAPI := users.New(l, db, v, s)
+	usersAPI := users.New(l, db, v, s, "APIKey")
 
 	id, err := uuid.Parse(idString)
 	_ = sqlmock.NewRows([]string{"id", "name", "email", "role"}).
@@ -277,7 +277,7 @@ func TestDeleteUser(t *testing.T) {
 	mockGormStoreRequests(mock)
 	s := gormstore.New(db, []byte("secret"))
 
-	usersAPI := users.New(l, db, v, s)
+	usersAPI := users.New(l, db, v, s, "APIKey")
 
 	id, err := uuid.Parse(idString)
 	testUtil.NoError(t, err)
@@ -314,7 +314,7 @@ func TestLogin(t *testing.T) {
 	mockGormStoreRequests(mock)
 	s := gormstore.New(db, []byte("secret"))
 
-	usersAPI := users.New(l, db, v, s)
+	usersAPI := users.New(l, db, v, s, "APIKey")
 
 	password := "Password@123"
 	pass, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -363,7 +363,7 @@ func TestLogout(t *testing.T) {
 	mockGormStoreRequests(mock)
 	s := gormstore.New(db, []byte("secret"))
 
-	usersAPI := users.New(l, db, v, s)
+	usersAPI := users.New(l, db, v, s, "APIKey")
 
 	password := "Password@123"
 	pass, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
