@@ -11,7 +11,7 @@ import { Observable } from 'rxjs';
 })
 export class AuthService {
   constructor(
-    private userService: AppService,
+    private appService: AppService,
     private http: HttpClient,
     private cookiesService: CookieService
   ) {}
@@ -31,6 +31,7 @@ export class AuthService {
       .subscribe(
         (response) => {
           console.log('Logout:', response);
+          this.appService.clearLoggedInUser();
         },
         (error) => {
           console.error('Logout error:', error);

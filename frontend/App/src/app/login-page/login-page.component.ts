@@ -27,12 +27,11 @@ export class LoginPageComponent {
         .login(this.email, this.password)
         .toPromise();
 
+      this.appService.clearLoggedInUser();
+
       await Promise.all([
-        this.appService.setLoggedInUserEmail(this.email),
+        this.appService.getCurrentUser(),
         this.appService.setLoggedInUserPassword(this.password),
-        this.appService.setLoggedInUserId(this.email, this.password),
-        this.appService.setLoggedInUserName(this.email, this.password),
-        this.appService.setLoggedInUserRole(this.email),
       ]);
 
       this.router.navigate(['/home']);

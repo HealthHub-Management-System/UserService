@@ -20,8 +20,8 @@ export class PaymentSystemPageComponent {
       this.router.navigateByUrl('/login');
     }
     this.trustedURL = this.sanitizer.bypassSecurityTrustResourceUrl(
-      'https://www.bing.com/'
-      // 'http://localhost:5000'
+      // 'https://www.bing.com/'
+      'http://localhost:59132/'
     );
   }
   checkIfLoggedIn(): boolean {

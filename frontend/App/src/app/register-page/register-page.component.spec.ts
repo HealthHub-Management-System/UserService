@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { RegisterPageComponent } from './register-page.component';
 import { FormsModule } from '@angular/forms';
 

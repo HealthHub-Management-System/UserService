@@ -24,8 +24,6 @@ export class AppService {
     this.loadLoggedInUser();
   }
 
-  async updateUsersList(): Promise<void> {}
-
   getUserById(userId: string): void {
     const url = `${this.apiUrl}/${userId}`;
 
@@ -96,17 +94,17 @@ export class AppService {
       role: this.getLoggedInUserRole(),
     };
     this.http.put<any>(url, user, { withCredentials: true }).subscribe(
-      (response: any) => {
+      async (response: any) => {
         console.log(response);
-        this.setLoggedInUserEmail(email);
-        this.setLoggedInUserName(email, this.getLoggedInUserPassword());
+        await this.setLoggedInUserEmail(email);
+        // await this.setLoggedInUserName(email, this.getLoggedInUserPassword());
+        await this.setLoggedInUserName(name);
         this.saveLoggedInUser();
       },
       (error) => {
         console.log(error);
       }
     );
-    await this.updateUsersList();
   }
 
   async getAllUsers(): Promise<User[]> {
@@ -156,14 +154,24 @@ export class AppService {
     return this.loggedInUser.loggedInUserPassword;
   }
 
-  async setLoggedInUserName(email: string, password: string): Promise<void> {
+  // async setLoggedInUserName(email: string, password: string): Promise<void> {
+  //   console.log('SET LOGGED IN USER NAME');
+  //   try {
+  //     const users = await this.getAllUsers();
+  //     console.log('USERS:', users);
+  //     const loggedInUser = users.find((user) => user.email === email);
+  //     if (loggedInUser) {
+  //       this.loggedInUser.loggedInUserName = loggedInUser.name;
+  //       this.saveLoggedInUser();
+  //     }
+  //   } catch (error) {
+  //     console.error('Error retrieving users:', error);
+  //   }
+  // }
+
+  async setLoggedInUserName(name: string): Promise<void> {
     try {
-      const users = await this.getAllUsers();
-      const loggedInUser = users.find((user) => user.email === email);
-      if (loggedInUser) {
-        this.loggedInUser.loggedInUserName = loggedInUser.name;
-        this.saveLoggedInUser();
-      }
+      this.loggedInUser.loggedInUserName = name;
     } catch (error) {
       console.error('Error retrieving users:', error);
     }
@@ -205,5 +213,35 @@ export class AppService {
 
   getLoggedInUserRole(): string {
     return this.loggedInUser.loggedInUserRole;
+  }
+
+  clearLoggedInUser(): void {
+    this.loggedInUser = {
+      loggedInUserEmail: '',
+      loggedInUserPassword: '',
+      loggedInUserName: '',
+      loggedInUserid: '',
+      loggedInUserRole: '',
+    };
+    localStorage.removeItem('loggedInUser');
+    this.loggedInUserSubject.next(this.loggedInUser);
+  }
+
+  async getCurrentUser(): Promise<User | null> {
+    try {
+      const user = await lastValueFrom(
+        this.http.get<User>(`${this.apiUrl}/current`, { withCredentials: true })
+      );
+      console.log('Current user:', user);
+      this.loggedInUser.loggedInUserName = user.name;
+      this.loggedInUser.loggedInUserEmail = user.email;
+      this.loggedInUser.loggedInUserid = user.id;
+      this.loggedInUser.loggedInUserRole = user.role;
+      this.saveLoggedInUser();
+      return user;
+    } catch (error) {
+      console.error('Error retrieving current user:', error);
+      return null;
+    }
   }
 }
