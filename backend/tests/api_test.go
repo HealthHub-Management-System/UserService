@@ -99,6 +99,10 @@ func TestAddUser(t *testing.T) {
 		return hash, nil
 	}
 
+	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
+		WithArgs("email@email.com", 1).
+		WillReturnRows(&sqlmock.Rows{})
+
 	password, _ := users.GenerateHash([]byte("password"))
 	mock.ExpectBegin()
 	mock.ExpectExec("^INSERT INTO \"users\" ").
@@ -120,6 +124,51 @@ func TestAddUser(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	status := rr.Code
 	testUtil.Equal(t, status, http.StatusCreated)
+}
+
+func TestCurrentUser(t *testing.T) {
+	idString := "c50abe98-7f20-4cb9-b4a8-fbef37988e7f"
+	req, err := http.NewRequest("GET", "/api/v1/users/current", nil)
+	if err != nil {
+		t.Errorf("Error creating a new request: %v", err)
+	}
+
+	l := logger.New(false)
+	v := validatorUtil.New()
+	db, mock, err := mockDB.NewMockDB()
+	testUtil.NoError(t, err)
+
+	mockGormStoreRequests(mock)
+	s := gormstore.New(db, []byte("secret"))
+	session, _ := s.Get(req, "session")
+	session.Values["id"] = idString
+
+	id, err := uuid.Parse(idString)
+	testUtil.NoError(t, err)
+	usersAPI := users.New(l, db, v, s)
+	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
+		AddRow(id, "user1", "email@email.com", "admin")
+
+	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
+		WithArgs(id, 1).
+		WillReturnRows(mockRows)
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(usersAPI.Current)
+
+	handler.ServeHTTP(rr, req)
+	status := rr.Code
+	testUtil.Equal(t, status, http.StatusOK)
+
+	var user users.User
+	err = json.NewDecoder(rr.Body).Decode(&user)
+	testUtil.NoError(t, err)
+
+	testUtil.Equal(t, user.ID, id)
+	testUtil.Equal(t, user.Name, "user1")
+	testUtil.Equal(t, user.Email, "email@email.com")
+	testUtil.Equal(t, user.Role, "admin")
+
 }
 
 func TestGetUser(t *testing.T) {
@@ -270,9 +319,10 @@ func TestLogin(t *testing.T) {
 	password := "Password@123"
 	pass, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	email := "email@email.com"
+	id := uuid.New()
 
 	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "password", "role"}).
-		AddRow(uuid.New(), "user1", email, pass, "patient")
+		AddRow(id, "user1", email, pass, "patient")
 
 	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
 		WithArgs(email, 1).
@@ -294,7 +344,14 @@ func TestLogin(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 	status := rr.Code
+	returnedUser := &users.UserResponse{}
+	err = json.NewDecoder(rr.Body).Decode(returnedUser)
 	testUtil.Equal(t, status, http.StatusOK)
+	testUtil.NoError(t, err)
+	testUtil.Equal(t, returnedUser.Name, "user1")
+	testUtil.Equal(t, returnedUser.Email, email)
+	testUtil.Equal(t, returnedUser.ID, id)
+	testUtil.Equal(t, returnedUser.Role, "patient")
 }
 
 func TestLogout(t *testing.T) {

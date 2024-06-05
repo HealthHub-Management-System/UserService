@@ -122,12 +122,38 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if form.Role == Admin {
+		a.logger.Error().Msg("Not allowed to create admin")
+		http.Error(w, "Cannot create admin from the level of API!", http.StatusUnauthorized)
+		return
+	}
+
+	if form.Role == Doctor {
+		session, err := a.store.Get(r, "session")
+		if value, ok := session.Values["role"].(string); !(ok && err == nil && value == Admin.ToString()) {
+			a.logger.Error().Err(err).Msg("Not admin tried to add doctor")
+			http.Error(w, "Doctor can only be added by admin!", http.StatusUnauthorized)
+			return
+		}
+	}
+
+	user, err1 := a.repository.GetByEmail(form.Email)
+	if err1 != nil && !errors.Is(err1, gorm.ErrRecordNotFound) {
+		a.logger.Error().Err(err1).Msg("Create user failed")
+		e.ServerError(w, e.RespDBDataAccessFailure)
+		return
+	} else if user != nil {
+		a.logger.Error().Msg("User already exists")
+		http.Error(w, "User already exists!", http.StatusConflict)
+		return
+	}
+
 	newUser := form.ToModel()
 	newUser.ID = GetUUID()
 
-	_, err := a.repository.Create(newUser)
-	if err != nil {
-		a.logger.Error().Err(err).Msg("Create user failed")
+	_, err2 := a.repository.Create(newUser)
+	if err2 != nil {
+		a.logger.Error().Err(err2).Msg("Create user failed")
 		e.ServerError(w, e.RespDBDataInsertFailure)
 		return
 	}
@@ -136,6 +162,60 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 	response := newUser.ToResponse()
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		a.logger.Error().Err(err).Msg("Create user failed")
+		e.ServerError(w, e.RespJSONEncodeFailure)
+		return
+	}
+}
+
+// Read godoc
+//
+//	@summary		Current user
+//	@description	Current user
+//	@tags			users
+//	@accept			json
+//	@produce		json
+//	@success		200	{object}	UserResponse
+//	@failure		400	{object}	error.Error
+//	@failure		404
+//	@failure		500	{object}	error.Error
+//	@router			/users/current [get]
+func (a *API) Current(w http.ResponseWriter, r *http.Request) {
+	session, err := a.store.Get(r, "session")
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Getting current user failed")
+		e.ServerError(w, e.RespSessionAccessFailure)
+		return
+	}
+
+	idString, ok := session.Values["id"].(string)
+	if !ok {
+		a.logger.Error().Msg("Getting current user failed")
+		e.ServerError(w, e.RespSessionAccessFailure)
+		return
+	}
+
+	id, err := uuid.Parse(idString)
+	if err != nil {
+		a.logger.Error().Msg(fmt.Sprintf("Error parsing UUID: %v\n", err))
+		e.ServerError(w, e.RespSessionAccessFailure)
+		return
+	}
+
+	user, err := a.repository.Read(id)
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Getting current user failed")
+		if err == gorm.ErrRecordNotFound {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		e.ServerError(w, e.RespDBDataAccessFailure)
+		return
+	}
+
+	response := user.ToResponse()
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		a.logger.Error().Err(err).Msg("Getting current user failed")
 		e.ServerError(w, e.RespJSONEncodeFailure)
 		return
 	}
@@ -156,7 +236,6 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 //	@router			/users/{id} [get]
 func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
-	fmt.Println(id)
 
 	if err != nil {
 		a.logger.Error().Err(err).Msg("Read user failed")
@@ -353,15 +432,20 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != nil {
+	session.Values["id"] = user.ID.String()
+	session.Values["email"] = user.Email
+	session.Values["role"] = user.Role.ToString()
+
+	if err := session.Save(r, w); err != nil {
+		a.logger.Error().Err(err).Msg("Login user failed")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	session.Values["email"] = user.Email
-	err = session.Save(r, w)
-	if err != nil {
-		a.logger.Error().Err(err).Msg("Login user failed")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+	response := user.ToResponse()
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		a.logger.Error().Err(err).Msg("Update user failed")
+		e.ServerError(w, e.RespJSONEncodeFailure)
 		return
 	}
 }
@@ -385,7 +469,9 @@ func (a *API) Logout(w http.ResponseWriter, r *http.Request) {
 		a.logger.Error().Err(err).Msg("Logout user failed")
 	}
 
+	session.Values["id"] = nil
 	session.Values["email"] = nil
+	session.Values["role"] = nil
 	session.Options.MaxAge = -1
 
 	err = session.Save(r, w)
