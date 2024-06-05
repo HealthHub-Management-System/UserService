@@ -31,7 +31,7 @@ const fmtDBString = "host=%s user=%s password=%s dbname=%s port=%d sslmode=disab
 // @license.name  MIT License
 // @license.url   https://github.com/HealthHub-Management-System/UserService/blob/master/LICENSE
 
-// @host      localhost:8080
+// @host      127.0.0.1:8080
 // @BasePath  /api/v1
 func main() {
 	c := config.New()
@@ -52,7 +52,10 @@ func main() {
 		return
 	}
 
-	store := gormstore.New(db, []byte(c.Server.Secret)) // temporary secret key
+	store := gormstore.New(db, []byte(c.Server.Secret))
+	store.SessionOpts.SameSite = http.SameSiteNoneMode
+	store.SessionOpts.Secure = true
+
 	r := router.New(l, db, v, store, c.Server.APIKey)
 
 	s := &http.Server{
