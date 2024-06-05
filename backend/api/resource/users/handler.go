@@ -171,7 +171,7 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Read godoc
+// Current godoc
 //
 //	@summary		Current user
 //	@description	Current user
