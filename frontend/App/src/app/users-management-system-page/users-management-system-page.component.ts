@@ -3,7 +3,6 @@ import { AppService } from '../app.service';
 import { User } from '../User';
 import { AuthService } from '../auth.service';
 import { Router } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-users-management-system-page',
@@ -13,8 +12,14 @@ import { lastValueFrom } from 'rxjs';
 export class UsersManagementSystemPageComponent implements OnInit {
   users: User[] = [];
   filteredUsers: User[] = [];
+  paginatedUsers: User[] = [];
   username: string = '';
   searchTerm: string = '';
+
+  currentPage: number = 1;
+  itemsPerPage: number = 5;
+  totalPages: number = 1;
+  totalUsers: number = 0;
 
   constructor(
     private appService: AppService,
@@ -30,10 +35,15 @@ export class UsersManagementSystemPageComponent implements OnInit {
   ngOnInit(): void {
     this.loadUsers();
   }
+
   async loadUsers(): Promise<void> {
     try {
-      const users = await this.appService.getUsers();
-      this.users = users;
+      const response = await this.appService.getUsers(
+        this.currentPage,
+        this.itemsPerPage
+      );
+      this.users = response.users;
+      this.totalUsers = response.total;
       this.applySearchFilter();
     } catch (error) {
       console.error('Error retrieving users:', error);
@@ -48,21 +58,65 @@ export class UsersManagementSystemPageComponent implements OnInit {
         user.name.toLowerCase().includes(this.searchTerm.trim().toLowerCase())
       );
     }
+    this.updatePaginatedUsers();
+  }
+
+  updatePaginatedUsers(): void {
+    this.totalPages = Math.ceil(this.totalUsers / this.itemsPerPage);
+    this.paginatedUsers = this.filteredUsers.slice(0, this.itemsPerPage);
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.loadUsers();
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.loadUsers();
+    }
+  }
+
+  goToPage(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const pageNumber = Number(target.value);
+
+    if (pageNumber >= 1 && pageNumber <= this.totalPages) {
+      this.currentPage = pageNumber;
+      this.loadUsers();
+    }
   }
 
   deleteUser(userId: string): void {
     this.appService.deleteUser(userId).subscribe(() => {
-      this.users = this.users.filter((user) => user.id !== userId);
-      this.applySearchFilter();
+      this.loadUsers();
     });
   }
+
   confirmDeleteUser(userId: string): void {
     const confirmation = confirm('Czy na pewno chcesz usunąć użytkownika?');
     if (confirmation) {
       this.deleteUser(userId);
     }
   }
+
   checkIfLoggedIn(): boolean {
     return this.authService.isLoggedIn();
+  }
+
+  mapRole(role: string): string {
+    switch (role) {
+      case 'patient':
+        return 'pacjent';
+      case 'doctor':
+        return 'lekarz';
+      case 'admin':
+        return 'administrator';
+      default:
+        return role;
+    }
   }
 }

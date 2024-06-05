@@ -26,24 +26,14 @@ export class LoginPageComponent {
       const response = await this.authService
         .login(this.email, this.password)
         .toPromise();
-      await this.appService.setLoggedInUserEmail(this.email);
-      await this.appService.setLoggedInUserPassword(this.password);
-      await this.appService.setLoggedInUserId(this.email, this.password);
-      await this.appService.setLoggedInUserName(this.email, this.password);
-      await this.appService.setLoggedInUserRole(this.email);
-      // const user = {
-      //   email: this.email,
-      //   password: this.password,
-      //   id: this.appService.getLoggedInUserId(),
-      //   name: this.appService.getLoggedInUserName(),
-      //   role: this.appService.getLoggedInUserRole(),
-      // };
 
-      // console.log('email: ', this.appService.getLoggedInUserEmail());
-      // console.log('password: ', this.appService.getLoggedInUserPassword());
-      // console.log('id: ', this.appService.getLoggedInUserId());
-      // console.log('name: ', this.appService.getLoggedInUserName());
-      // console.log('role: ', this.appService.getLoggedInUserRole());
+      await Promise.all([
+        this.appService.setLoggedInUserEmail(this.email),
+        this.appService.setLoggedInUserPassword(this.password),
+        this.appService.setLoggedInUserId(this.email, this.password),
+        this.appService.setLoggedInUserName(this.email, this.password),
+        this.appService.setLoggedInUserRole(this.email),
+      ]);
 
       this.router.navigate(['/home']);
     } catch (error) {

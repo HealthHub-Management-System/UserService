@@ -26,12 +26,28 @@
         <tr *ngFor="let user of filteredUsers">
           <td>{{ user.name }}</td>
           <td>{{ user.email }}</td>
-          <td>{{ user.role }}</td>
+          <td>{{ mapRole(user.role) }}</td>
           <td>
             <button (click)="confirmDeleteUser(user.id)">Usuń</button>
           </td>
         </tr>
       </tbody>
     </table>
+  </div>
+  <div class="pagination-controls">
+    <button (click)="previousPage()" [disabled]="currentPage === 1">
+      Poprzednia strona
+    </button>
+    <span>Strona {{ currentPage }} z {{ totalPages }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages">
+      Następna strona
+    </button>
+    <input
+      type="number"
+      [value]="currentPage"
+      (change)="goToPage($event)"
+      min="1"
+      [max]="totalPages"
+    />
   </div>
 </div>

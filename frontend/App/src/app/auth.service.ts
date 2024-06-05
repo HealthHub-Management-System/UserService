@@ -10,8 +10,6 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class AuthService {
-  // private users: User[] = [];
-
   constructor(
     private userService: AppService,
     private http: HttpClient,

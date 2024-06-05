@@ -36,8 +36,12 @@ export class AddUserPageComponent {
   submitForm(userForm: NgForm) {
     if (userForm.valid) {
       this.appService.addUserRegistration(this.user);
+      window.alert('Pomyślne dodanie użytkownika!');
       userForm.resetForm();
       this.user = { name: '', email: '', role: '', password: '' };
+      this.router.navigate(['/usersmanagement']);
+    } else {
+      window.alert('Dodanie użytkownika nie powiodło się!');
     }
   }
   checkIfLoggedIn(): boolean {
