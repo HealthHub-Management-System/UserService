@@ -57,6 +57,14 @@ func (r *Repository) GetByEmail(email string) (*User, error) {
 	return user, nil
 }
 
+func (r *Repository) GetByRole(role string) (Users, error) {
+	users := make([]*User, 0)
+	if err := r.db.Where("role = ?", role).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (r *Repository) Update(user *User) (int64, error) {
 	result := r.db.Model(&User{}).
 		Select("name", "email").
