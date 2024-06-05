@@ -32,9 +32,10 @@ func TestRepository_List(t *testing.T) {
 	pagination := &pagination.Pagination{
 		Page:  1,
 		Limit: 10,
+		Role:  nil,
 	}
 
-	result, err := repo.List(*pagination)
+	result := repo.List(*pagination)
 	testUtil.NoError(t, err)
 	testUtil.Equal(t, len(result.Rows.(users.Users)), 2)
 	testUtil.Equal(t, result.Page, 1)

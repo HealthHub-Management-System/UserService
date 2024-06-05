@@ -47,8 +47,9 @@ func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *gormstore.Sto
 //	@tags			users
 //	@accept			json
 //	@produce		json
-//	@param			page	query	int	false	"Page number"
-//	@param			limit	query	int	false	"Number of items per page"
+//	@param			page	query	int	false		"Page number"
+//	@param			limit	query	int	false		"Number of items per page"
+//	@param			role	query	string false	"Role to filter by"
 //	@success		200	{object}	ListResponse
 //	@failure		500	{object}	error.Error
 //	@router			/users [get]
@@ -67,12 +68,7 @@ func (a *API) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pagination, err := a.repository.List(*pagination)
-	if err != nil {
-		a.logger.Error().Err(err).Msg("List users failed")
-		e.ServerError(w, e.RespDBDataAccessFailure)
-		return
-	}
+	pagination = a.repository.List(*pagination)
 
 	if users, ok := pagination.Rows.(Users); ok {
 		response := users.ToResponse()
@@ -171,7 +167,7 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Read godoc
+// Current godoc
 //
 //	@summary		Current user
 //	@description	Current user

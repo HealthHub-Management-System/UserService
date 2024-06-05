@@ -17,18 +17,14 @@ func NewRepository(db *gorm.DB) *Repository {
 	}
 }
 
-func (r *Repository) List(p pagination.Pagination) (*pagination.Pagination, error) {
+func (r *Repository) List(p pagination.Pagination) *pagination.Pagination {
 	var users Users
 
 	r.db.Scopes(pagination.Paginate(users, &p, r.db)).Find(&users)
 
-	if len(users) == 0 {
-		return nil, gorm.ErrRecordNotFound
-	}
-
 	p.Rows = users
 
-	return &p, nil
+	return &p
 }
 
 func (r *Repository) Create(user *User) (*User, error) {

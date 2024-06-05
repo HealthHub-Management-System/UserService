@@ -11,6 +11,7 @@ import (
 type Pagination struct {
 	Limit      int `form:"limit"`
 	Page       int `form:"page"`
+	Role       any
 	TotalRows  int64
 	TotalPages int
 	Rows       any
@@ -31,6 +32,12 @@ func (p *Pagination) Parse(query url.Values) {
 		p.Limit = limit
 	} else {
 		p.Limit = 10
+	}
+
+	if query.Has("role") {
+		p.Role = query.Get("role")
+	} else {
+		p.Role = nil
 	}
 }
 
@@ -54,13 +61,20 @@ func (p *Pagination) GetPage() int {
 
 func Paginate(value any, pagination *Pagination, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
 	var totalRows int64
-	db.Model(value).Count(&totalRows)
+	if pagination.Role == nil {
+		db.Model(value).Count(&totalRows)
+	} else {
+		db.Model(value).Where("role = ?", pagination.Role).Count(&totalRows)
+	}
 
 	pagination.TotalRows = totalRows
 	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
 	pagination.TotalPages = totalPages
 
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order("id desc")
+		if pagination.Role == nil {
+			return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order("id desc")
+		}
+		return db.Where("role = ?", pagination.Role).Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order("id desc")
 	}
 }
