@@ -21,6 +21,7 @@ export class PaymentSystemPageComponent {
     }
     this.trustedURL = this.sanitizer.bypassSecurityTrustResourceUrl(
       'https://www.bing.com/'
+      // 'http://localhost:5000'
     );
   }
   checkIfLoggedIn(): boolean {
