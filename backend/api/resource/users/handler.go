@@ -169,6 +169,60 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 
 // Read godoc
 //
+//	@summary		Current user
+//	@description	Current user
+//	@tags			users
+//	@accept			json
+//	@produce		json
+//	@success		200	{object}	UserResponse
+//	@failure		400	{object}	error.Error
+//	@failure		404
+//	@failure		500	{object}	error.Error
+//	@router			/users/current [get]
+func (a *API) Current(w http.ResponseWriter, r *http.Request) {
+	session, err := a.store.Get(r, "session")
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Getting current user failed")
+		e.ServerError(w, e.RespSessionAccessFailure)
+		return
+	}
+
+	idString, ok := session.Values["id"].(string)
+	if !ok {
+		a.logger.Error().Msg("Getting current user failed")
+		e.ServerError(w, e.RespSessionAccessFailure)
+		return
+	}
+
+	id, err := uuid.Parse(idString)
+	if err != nil {
+		a.logger.Error().Msg(fmt.Sprintf("Error parsing UUID: %v\n", err))
+		e.ServerError(w, e.RespSessionAccessFailure)
+		return
+	}
+
+	user, err := a.repository.Read(id)
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Getting current user failed")
+		if err == gorm.ErrRecordNotFound {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		e.ServerError(w, e.RespDBDataAccessFailure)
+		return
+	}
+
+	response := user.ToResponse()
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		a.logger.Error().Err(err).Msg("Getting current user failed")
+		e.ServerError(w, e.RespJSONEncodeFailure)
+		return
+	}
+}
+
+// Read godoc
+//
 //	@summary		Read user
 //	@description	Read user
 //	@tags			users
@@ -182,7 +236,6 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 //	@router			/users/{id} [get]
 func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
-	fmt.Println(id)
 
 	if err != nil {
 		a.logger.Error().Err(err).Msg("Read user failed")
@@ -379,10 +432,11 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	session.Values["id"] = user.ID.String()
 	session.Values["email"] = user.Email
 	session.Values["role"] = user.Role.ToString()
-	err = session.Save(r, w)
-	if err != nil {
+
+	if err := session.Save(r, w); err != nil {
 		a.logger.Error().Err(err).Msg("Login user failed")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -415,6 +469,7 @@ func (a *API) Logout(w http.ResponseWriter, r *http.Request) {
 		a.logger.Error().Err(err).Msg("Logout user failed")
 	}
 
+	session.Values["id"] = nil
 	session.Values["email"] = nil
 	session.Values["role"] = nil
 	session.Options.MaxAge = -1

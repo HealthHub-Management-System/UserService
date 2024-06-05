@@ -52,6 +52,7 @@ func New(l *zerolog.Logger, db *gorm.DB, v *validator.Validate, s *gormstore.Sto
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.LoggedOnly(s))
+			r.Get("/users/current", usersAPI.Current)
 			r.Get("/users/{id}", usersAPI.Read)
 			r.Put("/users/{id}", usersAPI.Update)
 			r.Post("/users/logout", usersAPI.Logout)
