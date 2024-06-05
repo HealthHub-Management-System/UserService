@@ -32,9 +32,10 @@ func TestRepository_List(t *testing.T) {
 	pagination := &pagination.Pagination{
 		Page:  1,
 		Limit: 10,
+		Role:  nil,
 	}
 
-	result, err := repo.List(*pagination)
+	result := repo.List(*pagination)
 	testUtil.NoError(t, err)
 	testUtil.Equal(t, len(result.Rows.(users.Users)), 2)
 	testUtil.Equal(t, result.Page, 1)
@@ -152,27 +153,4 @@ func TestRepository_GetByEmail(t *testing.T) {
 	user, err := repo.GetByEmail(email)
 	testUtil.NoError(t, err)
 	testUtil.Equal(t, "user1", user.Name)
-}
-
-func TestRepository_GetByRole(t *testing.T) {
-	t.Parallel()
-
-	db, mock, err := mockDB.NewMockDB()
-	testUtil.NoError(t, err)
-
-	repo := users.NewRepository(db)
-	_ = sqlmock.NewRows([]string{"id", "name", "email", "role"}).
-		AddRow(uuid.New(), "user1", "email@email.com", "patient")
-	mockRows := sqlmock.NewRows([]string{"id", "name", "email", "role"}).
-		AddRow(uuid.New(), "user2", "email2@email.com", "doctor")
-
-	mock.ExpectQuery("^SELECT (.+) FROM \"users\" WHERE (.+)").
-		WithArgs("doctor").
-		WillReturnRows(mockRows)
-
-	doctors, err := repo.GetByRole("doctor")
-	testUtil.NoError(t, err)
-	testUtil.Equal(t, 1, len(doctors))
-	testUtil.Equal(t, "user2", doctors[0].Name)
-	testUtil.Equal(t, "doctor", doctors[0].Role)
 }
