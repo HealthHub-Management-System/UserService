@@ -9,6 +9,8 @@ SERVER_TIMEOUT_READ=3s
 SERVER_TIMEOUT_WRITE=5s
 SERVER_TIMEOUT_IDLE=5s
 SERVER_DEBUG=true
+SERVER_API_KEY=a9655739cbfed565b6b86dfb4d2a63df
+SERVER_SECRET=e7814e8645933c2dbf8ffff65fc58039
 
 POSTGRES_HOST=db # If you are running it from Docker Compose 
 POSTGRES_PORT=5432
@@ -48,6 +50,19 @@ go run /backend/cmd/migrate/main.go -h
 
 ```bash
 swag init -g ./cmd/api/main.go
+```
+
+### Usage
+
+- You can skip authorization by adding header:
+```bash
+Authorization: Bearer KEY
+```
+where **KEY** is the same value as in `.env` (SEREVER_API_KEY).
+
+- Example request:
+```bash
+curl 127.0.0.1:8080/api/v1/users -H 'Authorization: Bearer a9655739cbfed565b6b86dfb4d2a63df'
 ```
 
 ## Folder structure
