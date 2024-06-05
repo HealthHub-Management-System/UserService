@@ -67,12 +67,7 @@ func (a *API) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pagination, err := a.repository.List(*pagination)
-	if err != nil {
-		a.logger.Error().Err(err).Msg("List users failed")
-		e.ServerError(w, e.RespDBDataAccessFailure)
-		return
-	}
+	pagination = a.repository.List(*pagination)
 
 	if users, ok := pagination.Rows.(Users); ok {
 		response := users.ToResponse()
