@@ -18,21 +18,23 @@ export class AuthService {
 
   private apiUrl = 'http://localhost:8080/api/v1/users';
 
-  login(email: string, password: string): Observable<HttpResponse<any>> {
-    this.appService.clearLoggedInUser();
+  async login(
+    email: string,
+    password: string
+  ): Promise<Observable<HttpResponse<any>>> {
+    await this.appService.clearLoggedInUser();
     return this.http.post<any>(
       `${this.apiUrl}/login`,
       { email: email, password: password },
       { observe: 'response', withCredentials: true }
     );
   }
-  logout(): void {
+  async logout(): Promise<void> {
     this.http
       .post<any>(`${this.apiUrl}/logout`, {}, { withCredentials: true })
       .subscribe(
-        (response) => {
-          console.log('Logout:', response);
-          this.appService.clearLoggedInUser();
+        async (response) => {
+          await this.appService.clearLoggedInUser();
         },
         (error) => {
           console.error('Logout error:', error);

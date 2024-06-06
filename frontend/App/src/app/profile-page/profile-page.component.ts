@@ -34,7 +34,6 @@ export class ProfilePageComponent {
   submitForm(userForm: NgForm) {
     if (userForm.valid) {
       this.confirmUpdateUser();
-      // userForm.resetForm();
     }
   }
 

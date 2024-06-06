@@ -28,12 +28,8 @@ export class AppService {
     const url = `${this.apiUrl}/${userId}`;
 
     this.http.get<any>(url, { withCredentials: true }).subscribe(
-      (response: any) => {
-        console.log(response);
-      },
-      (error) => {
-        console.log(error);
-      }
+      (response: any) => {},
+      (error) => {}
     );
   }
 
@@ -64,24 +60,15 @@ export class AppService {
 
   addUser(user: any): void {
     this.http.post<any>(this.apiUrl, user, { withCredentials: true }).subscribe(
-      (response: any) => {
-        console.log(response);
-      },
-      (error) => {
-        console.log(error);
-      }
+      (response: any) => {},
+      (error) => {}
     );
   }
 
-  addUserRegistration(user: any): void {
+  async addUserRegistration(user: any): Promise<void> {
     this.http.post<any>(this.apiUrl, user).subscribe(
-      (response: any) => {
-        console.log(response);
-        console.log('Registry User-service:', user);
-      },
-      (error) => {
-        console.log(error);
-      }
+      (response: any) => {},
+      (error) => {}
     );
   }
 
@@ -95,14 +82,11 @@ export class AppService {
     };
     this.http.put<any>(url, user, { withCredentials: true }).subscribe(
       async (response: any) => {
-        console.log(response);
         await this.setLoggedInUserEmail(email);
         await this.setLoggedInUserName(name);
         this.saveLoggedInUser();
       },
-      (error) => {
-        console.log(error);
-      }
+      (error) => {}
     );
   }
 

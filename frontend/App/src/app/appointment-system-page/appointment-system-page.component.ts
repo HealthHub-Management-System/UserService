@@ -9,8 +9,6 @@ import { Router } from '@angular/router';
   styleUrl: './appointment-system-page.component.css',
 })
 export class AppointmentSystemPageComponent {
-  username: string = 'Jan Kowalski';
-
   private sanitizer = inject(DomSanitizer);
 
   trustedURL: any = '';

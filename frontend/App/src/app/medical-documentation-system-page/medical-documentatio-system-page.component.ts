@@ -9,8 +9,6 @@ import { Router } from '@angular/router';
   styleUrl: './medical-documentatio-system-page.component.css',
 })
 export class MedicalDocumentatioSystemPageComponent {
-  username: string = 'Jan Kowalski';
-
   private sanitizer = inject(DomSanitizer);
 
   trustedURL: any = '';
