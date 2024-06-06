@@ -18,7 +18,7 @@ export class OpinionSystemPageComponent {
       this.router.navigateByUrl('/login');
     }
     this.trustedURL = this.sanitizer.bypassSecurityTrustResourceUrl(
-      'https://www.bing.com/'
+      'http://localhost:4200'
     );
   }
   checkIfLoggedIn(): boolean {

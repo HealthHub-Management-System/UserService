@@ -18,7 +18,7 @@ export class AppointmentSystemPageComponent {
       this.router.navigateByUrl('/login');
     }
     this.trustedURL = this.sanitizer.bypassSecurityTrustResourceUrl(
-      'https://www.bing.com/'
+      'http://localhost:5173'
     );
   }
   checkIfLoggedIn(): boolean {

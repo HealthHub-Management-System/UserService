@@ -18,7 +18,7 @@ export class MedicalDocumentatioSystemPageComponent {
       this.router.navigateByUrl('/login');
     }
     this.trustedURL = this.sanitizer.bypassSecurityTrustResourceUrl(
-      'https://www.bing.com/'
+      'http://localhost:3003'
     );
   }
   checkIfLoggedIn(): boolean {
