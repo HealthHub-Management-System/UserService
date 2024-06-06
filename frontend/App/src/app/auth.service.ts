@@ -10,10 +10,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class AuthService {
-  // private users: User[] = [];
-
   constructor(
-    private userService: AppService,
+    private appService: AppService,
     private http: HttpClient,
     private cookiesService: CookieService
   ) {}
@@ -21,6 +19,7 @@ export class AuthService {
   private apiUrl = 'http://localhost:8080/api/v1/users';
 
   login(email: string, password: string): Observable<HttpResponse<any>> {
+    this.appService.clearLoggedInUser();
     return this.http.post<any>(
       `${this.apiUrl}/login`,
       { email: email, password: password },
@@ -33,6 +32,7 @@ export class AuthService {
       .subscribe(
         (response) => {
           console.log('Logout:', response);
+          this.appService.clearLoggedInUser();
         },
         (error) => {
           console.error('Logout error:', error);

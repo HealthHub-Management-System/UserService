@@ -9,6 +9,11 @@ import { AppService } from '../app.service';
   styleUrl: './home-page.component.css',
 })
 export class HomePageComponent {
+  user = {
+    name: '',
+    role: '',
+  };
+
   constructor(
     private router: Router,
     private authService: AuthService,
@@ -20,10 +25,7 @@ export class HomePageComponent {
       this.router.navigateByUrl('/login');
     }
   }
-  user = {
-    name: '',
-    role: '',
-  };
+
   checkIfLoggedIn(): boolean {
     console.log('App-service');
     console.log('email: ', this.appService.getLoggedInUserEmail());

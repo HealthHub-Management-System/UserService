@@ -93,6 +93,11 @@
       </div>
     </div>
 
-    <button type="submit" (click)="submitForm(userForm)">Zarejestruj</button>
+    <button
+      type="submit"
+      [disabled]="!userForm.valid || user.password !== repeatedpassword"
+    >
+      Zarejestruj
+    </button>
   </form>
 </div>

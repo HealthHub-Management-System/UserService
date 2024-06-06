@@ -13,7 +13,8 @@
       />
       <div
         *ngIf="
-          userForm.controls['name'].invalid && userForm.controls['name'].touched
+          userForm.controls['name']?.invalid &&
+          userForm.controls['name']?.touched
         "
         class="error-message"
       >
@@ -33,8 +34,8 @@
       />
       <div
         *ngIf="
-          userForm.controls['email'].invalid &&
-          userForm.controls['email'].touched
+          userForm.controls['email']?.invalid &&
+          userForm.controls['email']?.touched
         "
         class="error-message"
       >
@@ -48,11 +49,11 @@
         <option value="">Wybierz rolę</option>
         <option value="patient">Pacjent</option>
         <option value="doctor">Lekarz</option>
-        <!-- <option value="admin">Administrator</option> -->
       </select>
       <div
         *ngIf="
-          userForm.controls['role'].invalid && userForm.controls['role'].touched
+          userForm.controls['role']?.invalid &&
+          userForm.controls['role']?.touched
         "
         class="error-message"
       >
@@ -73,8 +74,8 @@
       />
       <div
         *ngIf="
-          userForm.controls['password'].invalid &&
-          userForm.controls['password'].touched
+          userForm.controls['password']?.invalid &&
+          userForm.controls['password']?.touched
         "
         class="error-message"
       >
@@ -94,8 +95,8 @@
       />
       <div
         *ngIf="
-          userForm.controls['repeatedpassword'].invalid &&
-          userForm.controls['repeatedpassword'].touched
+          userForm.controls['repeatedpassword']?.invalid &&
+          userForm.controls['repeatedpassword']?.touched
         "
         class="error-message"
       >
@@ -104,7 +105,7 @@
       <div
         *ngIf="
           user.password !== repeatedpassword &&
-          userForm.controls['repeatedpassword'].touched
+          userForm.controls['repeatedpassword']?.touched
         "
         class="error-message"
       >
@@ -112,6 +113,11 @@
       </div>
     </div>
 
-    <button type="submit">Dodaj użytkownika</button>
+    <button
+      type="submit"
+      [disabled]="!userForm.valid || user.password !== repeatedpassword"
+    >
+      Dodaj użytkownika
+    </button>
   </form>
 </div>

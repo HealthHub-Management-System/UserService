@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { AuthService } from '../auth.service';
 import { AppService } from '../app.service';
 
@@ -7,17 +7,21 @@ import { AppService } from '../app.service';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
   @Input() username: string | undefined;
 
   constructor(
     private authService: AuthService,
     private appService: AppService
-  ) {
-    this.username = this.appService.getLoggedInUserName();
-  }
+  ) {}
 
   isMenuOpen: boolean = false;
+
+  ngOnInit(): void {
+    this.appService.loggedInUser$.subscribe((user) => {
+      this.username = user.loggedInUserName;
+    });
+  }
 
   toggleMenu(): void {
     this.isMenuOpen = !this.isMenuOpen;

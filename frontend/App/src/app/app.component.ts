@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { AuthService } from './auth.service';
+import { AppService } from './app.service';
 
 @Component({
   selector: 'app-root',
@@ -7,4 +9,16 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   routerOutletActivated = false;
+
+  constructor(
+    private authService: AuthService,
+    private appService: AppService
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    const isLoggedIn = this.authService.isLoggedIn();
+    if (!isLoggedIn) {
+      await this.appService.clearLoggedInUser();
+    }
+  }
 }
