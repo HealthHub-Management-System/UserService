@@ -25,7 +25,6 @@ export class RegisterPageComponent {
   submitForm(userForm: NgForm) {
     if (userForm.valid && this.user.password === this.repeatedpassword) {
       this.appService.addUserRegistration(this.user);
-      console.log('Registry User:', this.user);
       window.alert('Pomyślna rejestracja!');
       userForm.resetForm();
       this.user = { name: '', email: '', role: 'patient', password: '' };

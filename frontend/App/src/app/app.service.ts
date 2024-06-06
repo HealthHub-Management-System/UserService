@@ -97,7 +97,6 @@ export class AppService {
       async (response: any) => {
         console.log(response);
         await this.setLoggedInUserEmail(email);
-        // await this.setLoggedInUserName(email, this.getLoggedInUserPassword());
         await this.setLoggedInUserName(name);
         this.saveLoggedInUser();
       },
@@ -154,21 +153,6 @@ export class AppService {
     return this.loggedInUser.loggedInUserPassword;
   }
 
-  // async setLoggedInUserName(email: string, password: string): Promise<void> {
-  //   console.log('SET LOGGED IN USER NAME');
-  //   try {
-  //     const users = await this.getAllUsers();
-  //     console.log('USERS:', users);
-  //     const loggedInUser = users.find((user) => user.email === email);
-  //     if (loggedInUser) {
-  //       this.loggedInUser.loggedInUserName = loggedInUser.name;
-  //       this.saveLoggedInUser();
-  //     }
-  //   } catch (error) {
-  //     console.error('Error retrieving users:', error);
-  //   }
-  // }
-
   async setLoggedInUserName(name: string): Promise<void> {
     try {
       this.loggedInUser.loggedInUserName = name;
@@ -215,7 +199,7 @@ export class AppService {
     return this.loggedInUser.loggedInUserRole;
   }
 
-  clearLoggedInUser(): void {
+  async clearLoggedInUser(): Promise<void> {
     this.loggedInUser = {
       loggedInUserEmail: '',
       loggedInUserPassword: '',
@@ -232,7 +216,6 @@ export class AppService {
       const user = await lastValueFrom(
         this.http.get<User>(`${this.apiUrl}/current`, { withCredentials: true })
       );
-      console.log('Current user:', user);
       this.loggedInUser.loggedInUserName = user.name;
       this.loggedInUser.loggedInUserEmail = user.email;
       this.loggedInUser.loggedInUserid = user.id;

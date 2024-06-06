@@ -19,6 +19,8 @@ import { UsersManagementSystemPageComponent } from './users-management-system-pa
 import { AddUserPageComponent } from './add-user-page/add-user-page.component';
 import { HttpClientModule } from '@angular/common/http';
 import { CookieService } from 'ngx-cookie-service';
+import { AppService } from './app.service';
+import { AuthService } from './auth.service';
 
 @NgModule({
   declarations: [
@@ -43,7 +45,7 @@ import { CookieService } from 'ngx-cookie-service';
     AppRoutingModule,
     HttpClientModule,
   ],
-  providers: [CookieService],
+  providers: [CookieService, AppService, AuthService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

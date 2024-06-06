@@ -13,6 +13,7 @@ export class UsersManagementSystemPageComponent implements OnInit {
   users: User[] = [];
   filteredUsers: User[] = [];
   paginatedUsers: User[] = [];
+  allUsers: User[] = [];
   username: string = '';
   searchTerm: string = '';
 
@@ -45,6 +46,7 @@ export class UsersManagementSystemPageComponent implements OnInit {
       this.users = response.users;
       this.totalUsers = response.total;
       this.applySearchFilter();
+      this.allUsers = await this.appService.getAllUsers();
     } catch (error) {
       console.error('Error retrieving users:', error);
     }
@@ -53,16 +55,21 @@ export class UsersManagementSystemPageComponent implements OnInit {
   applySearchFilter(): void {
     if (this.searchTerm.trim() === '') {
       this.filteredUsers = this.users;
+      this.updatePaginatedUsers();
     } else {
-      this.filteredUsers = this.users.filter((user) =>
+      this.filteredUsers = this.allUsers.filter((user) =>
         user.name.toLowerCase().includes(this.searchTerm.trim().toLowerCase())
       );
+      this.updatePaginatedUsers2();
     }
-    this.updatePaginatedUsers();
   }
 
-  updatePaginatedUsers(): void {
+  async updatePaginatedUsers(): Promise<void> {
     this.totalPages = Math.ceil(this.totalUsers / this.itemsPerPage);
+    this.paginatedUsers = this.filteredUsers.slice(0, this.itemsPerPage);
+  }
+  async updatePaginatedUsers2(): Promise<void> {
+    this.totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage);
     this.paginatedUsers = this.filteredUsers.slice(0, this.itemsPerPage);
   }
 
