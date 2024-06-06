@@ -27,12 +27,6 @@ export class HomePageComponent {
   }
 
   checkIfLoggedIn(): boolean {
-    console.log('App-service');
-    console.log('email: ', this.appService.getLoggedInUserEmail());
-    console.log('password: ', this.appService.getLoggedInUserPassword());
-    console.log('id: ', this.appService.getLoggedInUserId());
-    console.log('name: ', this.appService.getLoggedInUserName());
-    console.log('role: ', this.appService.getLoggedInUserRole());
     return this.authService.isLoggedIn();
   }
 

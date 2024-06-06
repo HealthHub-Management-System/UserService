@@ -23,11 +23,11 @@ export class LoginPageComponent {
 
   async login(): Promise<void> {
     try {
-      const response = await this.authService
-        .login(this.email, this.password)
-        .toPromise();
+      const response = await (
+        await this.authService.login(this.email, this.password)
+      ).toPromise();
 
-      this.appService.clearLoggedInUser();
+      await this.appService.clearLoggedInUser();
 
       await Promise.all([
         this.appService.getCurrentUser(),

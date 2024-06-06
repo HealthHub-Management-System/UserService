@@ -22,9 +22,10 @@ export class RegisterPageComponent {
 
   constructor(private router: Router, private appService: AppService) {}
 
-  submitForm(userForm: NgForm) {
+  async submitForm(userForm: NgForm): Promise<void> {
     if (userForm.valid && this.user.password === this.repeatedpassword) {
-      this.appService.addUserRegistration(this.user);
+      await this.appService.clearLoggedInUser();
+      await this.appService.addUserRegistration(this.user);
       window.alert('Pomyślna rejestracja!');
       userForm.resetForm();
       this.user = { name: '', email: '', role: 'patient', password: '' };

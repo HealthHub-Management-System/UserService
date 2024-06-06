@@ -9,8 +9,6 @@ import { Router } from '@angular/router';
   styleUrl: './payment-system-page.component.css',
 })
 export class PaymentSystemPageComponent {
-  username: string = 'Jan Kowalski';
-
   private sanitizer = inject(DomSanitizer);
 
   trustedURL: any = '';

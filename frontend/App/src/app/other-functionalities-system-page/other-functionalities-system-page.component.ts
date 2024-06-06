@@ -9,8 +9,6 @@ import { Router } from '@angular/router';
   styleUrl: './other-functionalities-system-page.component.css',
 })
 export class OtherFunctionalitiesSystemPageComponent {
-  username: string = 'Jan Kowalski';
-
   private sanitizer = inject(DomSanitizer);
 
   trustedURL: any = '';
